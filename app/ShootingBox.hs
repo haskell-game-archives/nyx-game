@@ -64,16 +64,14 @@ instance Ord MainChar where
 
 wantedAssets :: [(String, MySDL.ResourceType FilePath)]
 wantedAssets =
-  [ ("rin-sprites", MySDL.Texture "rint.png")
+  [ ("nyx-sprites", MySDL.Texture "nyx-sprites.png")
   ]
 
 
 mkMainChar :: M.Map String SDL.Texture -> Result MainChar
 mkMainChar ts = do
-  case M.lookup "rin-sprites" ts of
-    Nothing ->
-      throwError ["Texture not found: rin-sprites"]
-    Just rint ->
+  case mapM ((`M.lookup` ts) . fst) wantedAssets of
+    Just [nyxSprites] ->
       pure $
         MainChar
           { _pos = Point 380 800
@@ -82,12 +80,12 @@ mkMainChar ts = do
             fromJust
               $ Spr.make
               $ Spr.MakeArgs
-              { mkActionmap = M.fromList [("normal", 0)]
+              { mkActionmap = M.fromList [("normal", 0), ("side", 1)]
               , mkAction = "normal"
-              , mkTexture = rint
-              , mkSize = Point 261 238
+              , mkTexture = nyxSprites
+              , mkSize = Point 180 380
               , mkMaxPos = 1
-              , mkSpeed = 900
+              , mkSpeed = 0
               }
           , _hitTimer = -1
           , _bulletsTimer = 5
@@ -97,9 +95,11 @@ mkMainChar ts = do
             , MV.accel = Point 3.5 3.5
             }
           }
+    _ ->
+      throwError ["Texture not found: nyx-sprites"]
 
 charSize :: Size
-charSize = Point 48 48
+charSize = Point 48 101
 
 update :: Input -> MainChar -> Result (MainChar, DL.DList Bullet -> DL.DList Bullet)
 update input mc = do
@@ -123,7 +123,7 @@ update input mc = do
       & fixPos wsize
       & set (size . x) (if keyPressed KeyB input then charSize ^. x `div` 2 else charSize ^. x)
       & set movement mv
-      & over sprite (Spr.update Nothing False)
+      & over sprite (Spr.update (if keyPressed KeyB input then Just "side" else Just "normal") False)
       & over hitTimer (\t -> if t <= 0 then -1 else t - 1)
       & over bulletsTimer (\t -> if t > 0 then t - 1 else if keyPressed KeyA input then 5 else 0)
 
@@ -165,7 +165,7 @@ render :: SDL.Renderer -> Camera -> MainChar -> IO ()
 render renderer cam mc =
   unless (mc ^. health < 0 && mc ^. hitTimer < 0) $ do
     let
-      rect = toRect (cam $ mc ^. pos) (mc ^. size)
+      rect = toRect (cam $ mc ^. pos) charSize
       h = fromIntegral $ mc ^. health * 3
     if mc ^. hitTimer > 0 && mc ^. hitTimer `mod` 10 < 5
     then do
@@ -173,7 +173,7 @@ render renderer cam mc =
       SDL.drawRect renderer (Just rect)
       SDL.fillRect renderer (Just rect)
     else do
-      Spr.render renderer cam (mc ^. pos) (mc ^. size) (mc ^. sprite)
+      Spr.render renderer cam (mc ^. pos) charSize (mc ^. sprite)
       -- SDL.textureBlendMode (mc ^. texture) SDL.$= SDL.BlendAlphaBlend
       -- SDL.textureAlphaMod  (mc ^. texture) SDL.$= 255
       -- SDL.copy renderer (mc ^. texture) Nothing (Just rect)
