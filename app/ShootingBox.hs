@@ -27,6 +27,10 @@ import qualified Play.Engine.Movement as MV
 import qualified Play.Engine.Sprite as Spr
 import Bullet
 
+data Dir
+  = DirRight
+  | DirLeft
+  deriving (Eq, Show)
 
 data MainChar
   = MainChar
@@ -37,6 +41,7 @@ data MainChar
   , _hitTimer :: {-# UNPACK #-} !Int
   , _bulletsTimer :: {-# UNPACK #-} !Int
   , _health :: {-# UNPACK #-} !Int
+  , _lastDir :: !Dir
   }
 
 makeFieldsNoPrefix ''MainChar
@@ -64,7 +69,7 @@ instance Ord MainChar where
 
 wantedAssets :: [(String, MySDL.ResourceType FilePath)]
 wantedAssets =
-  [ ("nyx-sprites", MySDL.Texture "nyx-sprites.png")
+  [ ("nyx-sprites", MySDL.Texture "nyx-sprites2.png")
   ]
 
 
@@ -80,7 +85,7 @@ mkMainChar ts = do
             fromJust
               $ Spr.make
               $ Spr.MakeArgs
-              { mkActionmap = M.fromList [("normal", 0), ("side", 1)]
+              { mkActionmap = ["normal", "side-right", "side-left"]
               , mkAction = "normal"
               , mkTexture = nyxSprites
               , mkSize = Point 180 380
@@ -94,12 +99,13 @@ mkMainChar ts = do
             { MV.maxspeed = Point 5 5
             , MV.accel = Point 3.5 3.5
             }
+          , _lastDir = DirRight
           }
     _ ->
       throwError ["Texture not found: nyx-sprites"]
 
 charSize :: Size
-charSize = Point 48 101
+charSize = Point 64 128
 
 update :: Input -> MainChar -> Result (MainChar, DL.DList Bullet -> DL.DList Bullet)
 update input mc = do
@@ -117,13 +123,25 @@ update input mc = do
         DL.append $ DL.fromList (newBullet mc)
       | otherwise = id
 
+    newDir
+      | keyPressed KeyLeft  input = DirLeft
+      | keyPressed KeyRight input = DirRight
+      | otherwise = mc ^. lastDir
+
     newMC =
       mc
       & over pos (`addPoint` move)
       & fixPos wsize
       & set (size . x) (if keyPressed KeyB input then charSize ^. x `div` 2 else charSize ^. x)
       & set movement mv
-      & over sprite (Spr.update (if keyPressed KeyB input then Just "side" else Just "normal") False)
+      & set lastDir newDir
+      & over sprite
+        (flip Spr.update False $
+           if
+             | keyPressed KeyB input && newDir == DirRight -> Just "side-left"
+             | keyPressed KeyB input -> Just "side-right"
+             | otherwise -> Just "normal"
+        )
       & over hitTimer (\t -> if t <= 0 then -1 else t - 1)
       & over bulletsTimer (\t -> if t > 0 then t - 1 else if keyPressed KeyA input then 5 else 0)
 
@@ -141,7 +159,7 @@ newBullet mc
     , mkBullet (mc ^. sprite . Spr.texture) (Point 0 (-1)) mv 2 100 ((mc ^. pos) `addPoint` Point ((mc ^. size . x `div` 4) * 3) 0)
     ]
   | otherwise =
-    [ mkBullet (mc ^. sprite . Spr.texture) (Point 0 (-1)) mv 5 100 ((mc ^. pos) `addPoint` Point (mc ^. size . x `div` 2) 0)
+    [ mkBullet (mc ^. sprite . Spr.texture) (Point 0 (-1)) mv 5 100 ((mc ^. pos) `addPoint` Point (charSize ^. x `div` 2) 0)
     ]
 
   where

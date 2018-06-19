@@ -85,7 +85,7 @@ initState sd scrpt rs = do
       pure $ State
         (SBG.mkSBG bgt 1 (Point 800 1000) (Point 0 0))
         ( maybe undefined id $ Spr.make $ Spr.MakeArgs
-          { mkActionmap = M.fromList [("normal", 0)]
+          { mkActionmap = ["normal"]
           , mkAction = "normal"
           , mkTexture = bgt
           , mkSize = Point 800 1000

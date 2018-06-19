@@ -43,7 +43,7 @@ makeFieldsNoPrefix ''Sprite
 
 data MakeArgs
   = MakeArgs
-  { mkActionmap :: M.Map T.Text Int
+  { mkActionmap :: [T.Text]
   , mkAction :: !T.Text
   , mkSpeed :: !Int
   , mkTexture :: !SDL.Texture
@@ -53,7 +53,7 @@ data MakeArgs
 
 simpleArgs :: Size -> SDL.Texture -> MakeArgs
 simpleArgs sz t = MakeArgs
-  { mkActionmap = M.fromList [("normal", 0)]
+  { mkActionmap = ["normal"]
   , mkAction = "normal"
   , mkSpeed = 0
   , mkTexture = t
@@ -63,9 +63,10 @@ simpleArgs sz t = MakeArgs
 
 make :: MakeArgs -> Maybe Sprite
 make MakeArgs{..} = do
-  act <- M.lookup mkAction mkActionmap
+  let actionMap = M.fromList $ zip mkActionmap [0..]
+  act <- M.lookup mkAction actionMap
   pure $ Sprite
-    { _actionmap = mkActionmap
+    { _actionmap = actionMap
     , _action = act
     , _texture = mkTexture
     , _initSpeed = mkSpeed

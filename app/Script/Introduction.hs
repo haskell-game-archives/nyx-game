@@ -40,7 +40,7 @@ introScript MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs, MySDL.music 
   , let
       sprargs rint =
         Spr.make $ Spr.MakeArgs
-          { mkActionmap = M.fromList [("normal", 0)]
+          { mkActionmap = ["normal"]
           , mkAction = "normal"
           , mkTexture = rint
           , mkSize = Point 800 1000
