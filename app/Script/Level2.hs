@@ -27,6 +27,7 @@ wantedAssets :: [(String, MySDL.ResourceType FilePath)]
 wantedAssets =
   CDE.wantedAssets
   ++ SSE.wantedAssets
+  ++ St.wantedAssets
   ++ TB.wantedAssets
   ++ [ ("bga", MySDL.Texture "bga.png")
      ]

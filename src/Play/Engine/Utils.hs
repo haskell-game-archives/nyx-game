@@ -23,7 +23,7 @@ import qualified Data.DList as DL
 
 import Play.Engine.Types
 
--- import Debug.Trace
+--import Debug.Trace
 
 firstM :: Functor f => (a -> f c) -> (a, b) -> f (c, b)
 firstM f (a, b) = (, b) <$> f a
@@ -95,11 +95,66 @@ data HasPosSize
   { _pos :: !IPoint
   , _size :: !Size
   }
+  deriving Show
 
 makeFieldsNoPrefix ''HasPosSize
 
-isTouching :: (HasSize a Size, HasPos a IPoint, HasSize b Size, HasPos b IPoint) => a -> b -> Maybe (a,b)
-isTouching a b =
+data Hitbox
+  = Hitbox
+  { _pos :: {-# UNPACK #-} !IPoint
+  , _size :: {-# UNPACK #-} !Size
+  }
+  deriving (Eq, Show)
+
+makeFieldsNoPrefix ''Hitbox
+
+data HasHitBox
+  = HasHitBox
+  { _hitbox :: !Hitbox
+  }
+  deriving Show
+
+makeFieldsNoPrefix ''HasHitBox
+
+circ' = HasPosSize
+  { _pos = Point 356 795
+  , _size = Point 12 12
+  }
+rec' = HasHitBox
+  { _hitbox = Hitbox
+    { _pos = Point 346 830
+    , _size = Point 21 64
+    }
+  }
+
+-- https://stackoverflow.com/questions/21089959/detecting-collision-of-rectangle-with-circle
+isTouchingCircleRect
+  :: (HasSize circle Size, HasPos circle IPoint, HasHitbox rect Hitbox)
+  => circle -> rect -> Maybe (circle, rect)
+isTouchingCircleRect circle rect =
+  let
+    circleDistance =
+      Point
+        (abs $ circle ^. pos . x - (rect ^. hitbox . pos . x) - (rect ^. hitbox . size . x) `div` 2)
+        (abs $ circle ^. pos . y - (rect ^. hitbox . pos . y) - (rect ^. hitbox . size . y) `div` 2)
+
+    cornerDistance_sq =
+      (+)
+        ((circleDistance ^. x - rect ^. hitbox . size . x `div` 2) ^ 2)
+        ((circleDistance ^. y - rect ^. hitbox . size . y `div` 2) ^ 2)
+
+  in if
+    | circleDistance ^. x >  (rect ^. hitbox . size . x `div` 2) + (circle ^. size . x `div` 2) -> Nothing
+    | circleDistance ^. y >  (rect ^. hitbox . size . y `div` 2) + (circle ^. size . y `div` 2) -> Nothing
+    | circleDistance ^. x <= (rect ^. hitbox . size . x `div` 2) -> Just (circle, rect)
+    | circleDistance ^. y <= (rect ^. hitbox . size . y `div` 2) -> Just (circle, rect)
+    | cornerDistance_sq <= (circle ^. size . x `div` 2) ^ 2 -> Just (circle, rect)
+    | otherwise -> Nothing
+
+isTouchingCircleCircle
+  :: (HasSize a Size, HasPos a IPoint, HasSize b Size, HasPos b IPoint)
+  => a -> b -> Maybe (a,b)
+isTouchingCircleCircle a b =
   let
     getCenter p = (p ^. pos) `addPoint` Point ((p ^. size . x) `div` 2) ((p ^. size . y) `div` 2)
     aCenter = getCenter a

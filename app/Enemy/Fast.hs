@@ -52,7 +52,7 @@ make posi ts = do
                 | otherwise -> Nothing
 
           , mkeEnemyTxt = et
-          , mkeDeathTime = 100
+          , mkeDeathTime = 120
           }
 
 crossMovement :: Either () () -> MV.Movement

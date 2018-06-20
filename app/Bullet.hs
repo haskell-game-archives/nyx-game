@@ -65,8 +65,8 @@ mkBullet txt dir mv dmg transp position = Bullet
   , _transparency = transp
   }
 
-update wsize entities b =
-  case mapMaybe (isTouching b) entities of
+update wsize touchCheck entities b =
+  case mapMaybe (touchCheck b) entities of
     []
       | not $ isInWindow wsize (b ^. pos) (b ^. size)
       -> ([], M.empty)

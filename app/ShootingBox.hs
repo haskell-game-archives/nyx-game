@@ -27,6 +27,10 @@ import qualified Play.Engine.Movement as MV
 import qualified Play.Engine.Sprite as Spr
 import Bullet
 
+-- import Debug.Trace
+
+
+
 data Dir
   = DirRight
   | DirLeft
@@ -42,6 +46,7 @@ data MainChar
   , _bulletsTimer :: {-# UNPACK #-} !Int
   , _health :: {-# UNPACK #-} !Int
   , _lastDir :: !Dir
+  , _hitbox :: !Hitbox
   }
 
 makeFieldsNoPrefix ''MainChar
@@ -100,12 +105,33 @@ mkMainChar ts = do
             , MV.accel = Point 3.5 3.5
             }
           , _lastDir = DirRight
+          , _hitbox = Hitbox
+            { _pos = Point (380 + (charSize ^. x `div` 4)) (800 + (charSize ^. y `div` 4))
+            , _size = charSize
+              & over x (`div` 2)
+              & over y (`div` 2)
+            }
           }
     _ ->
       throwError ["Texture not found: nyx-sprites"]
 
 charSize :: Size
-charSize = Point 64 128
+charSize = Point 60 108
+
+fixHitpos :: MainChar -> MainChar
+fixHitpos mc = mc
+  & set (hitbox . pos . x) ((+) (mc ^. pos . x) $ charSize ^. x `div` 4)
+  & set (hitbox . pos . y) ((+) (mc ^. pos . y) $ charSize ^. y `div` 4)
+  & set (hitbox . size . x) (charSize ^. x `div` 2)
+  & set (hitbox . size . y) (charSize ^. y `div` 3)
+
+halfHitbox :: MainChar -> MainChar
+halfHitbox mc = mc
+  & set (hitbox . pos . x) ((+) (mc ^. pos . x) $ charSize ^. x `div` 3)
+  & set (hitbox . pos . y) ((+) (mc ^. pos . y) $ charSize ^. y `div` 3)
+  & set (hitbox . size . x) (charSize ^. x `div` 3)
+  & set (hitbox . size . y) (charSize ^. y `div` 3)
+
 
 update :: Input -> MainChar -> Result (MainChar, DL.DList Bullet -> DL.DList Bullet)
 update input mc = do
@@ -132,7 +158,9 @@ update input mc = do
       mc
       & over pos (`addPoint` move)
       & fixPos wsize
+      & fixHitpos
       & set (size . x) (if keyPressed KeyB input then charSize ^. x `div` 2 else charSize ^. x)
+      & (if keyPressed KeyB input then halfHitbox else id)
       & set movement mv
       & set lastDir newDir
       & over sprite
@@ -168,12 +196,16 @@ newBullet mc
       , MV.accel = Point 0 10
       }
 
-checkHit :: DL.DList Bullet -> MainChar -> MainChar
+checkHit :: [Bullet] -> MainChar -> MainChar
 checkHit bullets mc
-  | any (isJust . isTouching mc) bullets && mc ^. health > 0
+  | not (null bullets) && mc ^. health > 0
   = mc
-    & over health (flip (-) (DL.head bullets ^. damage))
-    & \enemy' -> set hitTimer (if enemy' ^. health <= 0 then hitTimeout * 4 else hitTimeout) enemy'
+    & over health (flip (-) (maximum $ (0:) $ map (^. damage) bullets))
+    & \mc' -> set hitTimer (if mc' ^. health <= 0 then hitTimeout * 4 else hitTimeout) mc'
+    -- & trace ("bullet pos: " ++ show (map (^. pos) bullets))
+    -- & trace ("bullet size: " ++ show (map (^. size) bullets))
+    -- & trace ("mc hitbox: " ++ show (mc ^. hitbox))
+    -- & trace ("hit: " ++ show (map (isNothing . flip isTouchingCircleRect mc) bullets))
   | otherwise
   = mc
 
@@ -183,18 +215,19 @@ render :: SDL.Renderer -> Camera -> MainChar -> IO ()
 render renderer cam mc =
   unless (mc ^. health < 0 && mc ^. hitTimer < 0) $ do
     let
-      rect = toRect (cam $ mc ^. pos) charSize
+      rect = toRect (cam $ mc ^. hitbox . pos) (mc ^. hitbox . size)
       h = fromIntegral $ mc ^. health * 3
-    if mc ^. hitTimer > 0 && mc ^. hitTimer `mod` 10 < 5
+    if mc ^. hitTimer > 0 && mc ^. hitTimer `mod` 7 < 5
     then do
       SDL.rendererDrawColor renderer SDL.$= Linear.V4 (255 - h) (255 - h) 255 255
       SDL.drawRect renderer (Just rect)
       SDL.fillRect renderer (Just rect)
     else do
       Spr.render renderer cam (mc ^. pos) charSize (mc ^. sprite)
-      -- SDL.textureBlendMode (mc ^. texture) SDL.$= SDL.BlendAlphaBlend
-      -- SDL.textureAlphaMod  (mc ^. texture) SDL.$= 255
-      -- SDL.copy renderer (mc ^. texture) Nothing (Just rect)
+      -- draw hitbox
+      -- SDL.rendererDrawColor renderer SDL.$= Linear.V4 (255 - h) (255 - h) 255 255
+      -- SDL.drawRect renderer (Just rect)
+      -- SDL.fillRect renderer (Just rect)
 
 get mc l
   | mc ^. health <= 0 && mc ^. hitTimer < 0 = Nothing

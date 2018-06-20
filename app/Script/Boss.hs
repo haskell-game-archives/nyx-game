@@ -50,7 +50,7 @@ lScript MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs, MySDL.music = _m
   [ Spawn $ sequence [Fast.make (Point 350 (-100)) ts]
   , WaitUntil noAction (const $ null)
 
-  , Wait noAction 150
+  , Wait noAction 170
 
   -- End
   , LoadTextBox act{ stopTheWorld = True } $

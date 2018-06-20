@@ -42,7 +42,7 @@ make posi dir ts = do
           { mkePos = posi
           , mkeSize = Point 48 48
           , mkeMov = crossMovement dir
-          , mkeHealth = 100
+          , mkeHealth = 70
           , mkeDirChanger = changeDirection
           , mkeAtk = downAttack bt
           , mkeAtkChanger = \_ _ -> Nothing
@@ -52,7 +52,7 @@ make posi dir ts = do
 
 crossMovement :: Either () () -> MV.Movement
 crossMovement dir = MV.make $ MV.defArgs
-  { MV.maxspeed = Point 4 2.5
+  { MV.maxspeed = Point 4.5 2.5
   , MV.accel = Point (mul 0.1) 0.3
   }
   where
@@ -61,7 +61,7 @@ crossMovement dir = MV.make $ MV.defArgs
       Right () -> (*) 1
 
 downAttack :: SDL.Texture -> A.Attack
-downAttack = SA.make 1 90 (10, 0) $ MV.straight (Point 0 8)
+downAttack = SA.make 1 90 (12, 0) $ MV.straight (Point 0 8)
 
 changeDirection :: Size -> Enemy -> FPoint
 changeDirection _ enemy

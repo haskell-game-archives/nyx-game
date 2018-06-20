@@ -12,6 +12,7 @@ import qualified SDL.Vect as Vect
 import qualified SDL.Primitive as SDL
 
 import Data.Maybe
+import Control.Monad
 import Play.Engine.Utils
 import Play.Engine.Types
 import Play.Engine.Input
@@ -174,7 +175,7 @@ updateTimers et =
 
 checkHit :: DL.DList Bullet -> Enemy -> Enemy
 checkHit bullets enemy
-  | any (isJust . isTouching enemy) bullets && enemy ^. health > 0
+  | any (isJust . isTouchingCircleCircle enemy) bullets && enemy ^. health > 0
   = enemy
     & over health (flip (-) (DL.head bullets ^. damage))
     & \enemy' ->
@@ -208,10 +209,11 @@ render renderer cam enemy = do
   let
     rect = toRect (cam $ enemy ^. pos) (enemy ^. size)
     h = fromIntegral $ 255 - max 0 (enemy ^. health * 2)
-  if
-    | enemy ^. timers . hitTimer > 0 && enemy ^. timers . hitTimer `mod` 6 < 3 -> do
+  SDL.copy renderer (enemy ^. texture) Nothing (Just rect)
+  when
+    (enemy ^. timers . hitTimer > 0 && enemy ^. timers . hitTimer `mod` 6 < 3) $ do
       let
-        colour = Vect.V4 255 (255 - h) (255 - h) 150
+        colour = Vect.V4 255 (255 - h) (255 - h) 80
         radius = fromIntegral $ enemy ^. size . x `div` 2
         center =
           Vect.V2
@@ -219,5 +221,3 @@ render renderer cam enemy = do
             (fromIntegral (cam (enemy ^. pos) ^. y) + radius)
       SDL.circle renderer center radius colour
       SDL.fillCircle renderer center radius colour
-    | otherwise ->
-      SDL.copy renderer (enemy ^. texture) Nothing (Just rect)

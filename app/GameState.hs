@@ -127,10 +127,18 @@ update input state = do
       <$> traverse (Enemy.update input) (state ^. enemies)
   let
     (mcBullets', _enemiesHit) =
-      updateListWith M.empty (const $ const M.empty) (Bullet.update wSize (state ^. enemies)) $ state ^. mcBullets
+      updateListWith
+        M.empty
+        (const $ const M.empty)
+        (Bullet.update wSize isTouchingCircleCircle (state ^. enemies))
+        (state ^. mcBullets)
 
-    (enemyBullets', _mcHit) =
-      updateListWith M.empty (M.union) (Bullet.update wSize (maybe [] (:[]) $ SB.get (state ^. mc) id)) $ state ^. enemyBullets
+    (enemyBullets', (concat . map snd . M.toList) -> mcHits) =
+      updateListWith
+        M.empty
+        M.union
+        (Bullet.update wSize isTouchingCircleRect $ maybe [] (:[]) $ SB.get (state ^. mc) id)
+        (state ^. enemyBullets)
 
   updatedDecObjs <- updateDecObjs input (state ^. decObjs)
 
@@ -160,7 +168,7 @@ update input state = do
                 & set enemyBullets enemyBullets'
             else
               state
-                & set mc (SB.checkHit enemyBullets' mc')
+                & set mc (SB.checkHit mcHits mc')
                 & set enemies enemies'
                 & over enemies ((++) (Script.spawn acts) . map (Enemy.checkHit mcBullets'))
                 & set mcBullets (addMCBullets mcBullets')
