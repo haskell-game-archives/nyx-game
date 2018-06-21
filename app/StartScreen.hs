@@ -40,7 +40,7 @@ makeFieldsNoPrefix ''State
 
 wantedAssets :: [(String, MySDL.ResourceType FilePath)]
 wantedAssets =
-  [ ("bg", MySDL.Texture "bg.png")
+  [ ("bg", MySDL.Texture "background.png")
   ] ++ Btn.wantedAssets
 
 make :: State.State

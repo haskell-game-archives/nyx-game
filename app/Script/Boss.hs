@@ -27,11 +27,7 @@ wantedAssets =
   CDE.wantedAssets
   ++ SSE.wantedAssets
   ++ TB.wantedAssets
-  ++ [ ("bga", MySDL.Texture "bga.png")
-     ]
-  ++ [ ("chikua", MySDL.Texture "chikua.png")
-     , ("saito",  MySDL.Texture "saito.png")
-     , ("saito2", MySDL.Texture "saito2.png")
+  ++ [ ("saito2", MySDL.Texture "saito2.png")
      , ("music", MySDL.Music "battle.ogg")
      , ("music-end", MySDL.Music "shushushu.ogg")
      , ("rin", MySDL.Texture "rin.png")

@@ -24,9 +24,7 @@ intro =
 wantedAssets :: [(String, MySDL.ResourceType FilePath)]
 wantedAssets =
   TB.wantedAssets
-  ++ [ ("test", MySDL.Texture "test.jpg")
-     , ("bga", MySDL.Texture "bga.png")
-     , ("music", MySDL.Music "shushushu.ogg")
+  ++ [ ("music", MySDL.Music "shushushu.ogg")
      , ("nix", MySDL.Texture "rin.png")
      , ("jas", MySDL.Texture "saito.png")
      ]

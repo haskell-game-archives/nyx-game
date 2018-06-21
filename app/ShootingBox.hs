@@ -74,7 +74,7 @@ instance Ord MainChar where
 
 wantedAssets :: [(String, MySDL.ResourceType FilePath)]
 wantedAssets =
-  [ ("nyx-sprites", MySDL.Texture "nyx-sprites2.png")
+  [ ("nyx-sprites", MySDL.Texture "nyx-sprites-animated.png")
   ]
 
 
@@ -94,8 +94,8 @@ mkMainChar ts = do
               , mkAction = "normal"
               , mkTexture = nyxSprites
               , mkSize = Point 180 380
-              , mkMaxPos = 1
-              , mkSpeed = 0
+              , mkMaxPos = 4
+              , mkSpeed = 5
               }
           , _hitTimer = -1
           , _bulletsTimer = 5
