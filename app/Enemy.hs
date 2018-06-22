@@ -209,15 +209,19 @@ render renderer cam enemy = do
   let
     rect = toRect (cam $ enemy ^. pos) (enemy ^. size)
     h = fromIntegral $ 255 - max 0 (enemy ^. health * 2)
+    isHit = enemy ^. timers . hitTimer > 0 && enemy ^. timers . hitTimer `mod` 6 < 3
+
+  SDL.textureBlendMode (enemy ^. texture) SDL.$= SDL.BlendAlphaBlend
+  SDL.textureAlphaMod  (enemy ^. texture) SDL.$= (if isHit then 170 else 255)
   SDL.copy renderer (enemy ^. texture) Nothing (Just rect)
-  when
-    (enemy ^. timers . hitTimer > 0 && enemy ^. timers . hitTimer `mod` 6 < 3) $ do
-      let
-        colour = Vect.V4 255 (255 - h) (255 - h) 80
-        radius = fromIntegral $ enemy ^. size . x `div` 2
-        center =
-          Vect.V2
-            (fromIntegral (cam (enemy ^. pos) ^. x) + radius)
-            (fromIntegral (cam (enemy ^. pos) ^. y) + radius)
-      SDL.circle renderer center radius colour
-      SDL.fillCircle renderer center radius colour
+
+  when isHit $ do
+    let
+      colour = Vect.V4 255 (255 - h) (255 - h) 50
+      radius = fromIntegral $ enemy ^. size . x `div` 2
+      center =
+        Vect.V2
+          (fromIntegral (cam (enemy ^. pos) ^. x) + radius)
+          (fromIntegral (cam (enemy ^. pos) ^. y) + radius)
+    SDL.circle renderer center radius colour
+    SDL.fillCircle renderer center radius colour

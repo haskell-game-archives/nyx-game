@@ -33,7 +33,7 @@ wantedAssets =
      , ("saito2", MySDL.Texture "saito2.png")
      , ("music", MySDL.Music "battle.ogg")
      , ("music-end", MySDL.Music "shushushu.ogg")
-     , ("rin", MySDL.Texture "rin.png")
+     , ("nyx-avatar", MySDL.Texture "nyx-avatar.png")
      ]
 
 
@@ -51,7 +51,7 @@ lScript MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs, MySDL.music = _m
     TB.make TB.Top 5 "I sent assassins to your campsite." (M.lookup "saito" ts) (M.lookup "unispace" fs)
 
   , LoadTextBox act{ stopTheWorld = True } $
-    TB.make TB.Bottom 3 "!!!" (M.lookup "rin" ts) (M.lookup "unispace" fs)
+    TB.make TB.Bottom 3 "!!!" (M.lookup "nyx-avatar" ts) (M.lookup "unispace" fs)
 
   , Wait noAction 60
   ] ++
