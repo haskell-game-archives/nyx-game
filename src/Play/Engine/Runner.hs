@@ -4,6 +4,7 @@
 
 module Play.Engine.Runner where
 
+import qualified Data.Map as M
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad
 import qualified SDL
@@ -55,7 +56,7 @@ update
   -> IO (Either [String] ([MySDL.Request], (Settings, Stack State.State)))
 update responses payload isKeyPressed (settings, stack) =
   let
-    keys = makeEvents (_keyStats settings) payload isKeyPressed (_keyMap settings)
+    (keys, joykeys) = makeEvents (_keyStats settings) (_joyKeyStats settings) payload isKeyPressed (_keyMap settings)
 
     toggleMuteFlag
       | keyClicked' KeyM keys = not
@@ -64,6 +65,7 @@ update responses payload isKeyPressed (settings, stack) =
     settings' = settings
       & over muteMusic toggleMuteFlag
       & set keyStats keys
+      & set joyKeyStats joykeys
 
     toggleMuteCmd
       | settings' ^. muteMusic = (:) MySDL.MuteMusic
@@ -72,8 +74,8 @@ update responses payload isKeyPressed (settings, stack) =
 
   in pure
     . fmap (\(setts, (reqs, states)) -> (toggleMuteCmd reqs, (setts, states)))
-    . (keys `deepseq` runResult $! settings')
-    $ State.updater (Input keys responses) stack
+    . (joykeys `deepseq` keys `deepseq` runResult $! settings')
+    $ State.updater (Input (M.unionWith max keys joykeys) responses) stack
 
 
 render :: (SDL.Window, SDL.Renderer) -> Stack State.State -> IO ()

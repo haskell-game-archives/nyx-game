@@ -23,10 +23,10 @@ data Input
 type Keys = M.Map Key Action
 
 data Action
-  = Click
-  | Hold
+  = Idle
   | Release
-  | Idle
+  | Hold
+  | Click
   deriving (Show, Eq, Ord, Generic, NFData)
 
 data Key
@@ -100,12 +100,17 @@ checkControllerEvent btn = \case
     | btn == btn' -> pure True
   _ -> Nothing
 
-makeEvents :: Keys -> [SDL.EventPayload] -> (SDL.Scancode -> Bool) -> [(Key, SDL.Scancode)] -> Keys
-makeEvents !current payload !isKeyPressed =
+makeEvents
+  :: Keys -- keyboard keys
+  -> Keys -- joystick keys
+  -> [SDL.EventPayload]
+  -> (SDL.Scancode -> Bool) -> [(Key, SDL.Scancode)]
+  -> (Keys, Keys) -- (keyboard keys, joystick keys)
+makeEvents !current !joycurrent payload !isKeyPressed keyboardKeys =
   let
     keyboard =
       fmap (fmap isKeyPressed)
-    _controller =
+    controller =
       fmap
         (\(key, btn) ->
           ( key
@@ -114,15 +119,20 @@ makeEvents !current payload !isKeyPressed =
               es = mapMaybe (checkControllerEvent btn) payload
             in
               if null es
-                then keepState (M.lookup key current)
+                then keepState (M.lookup key joycurrent)
                 else any id es
           )
         )
       $ defControllerButtonMap
   in
-    updateKeys current
-    . M.fromListWith max
-    . keyboard
+    ( updateKeys current
+      . M.fromListWith max
+      . keyboard
+      $ keyboardKeys
+    , updateKeys joycurrent
+      . M.fromListWith max
+      $ controller
+    )
 
 updateKeys :: Keys -> M.Map Key Bool -> Keys
 updateKeys !keys !newStates =
