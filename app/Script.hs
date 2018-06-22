@@ -24,6 +24,7 @@ data Command
   | PlayMusic (String, Maybe Mix.Music)
   | PlayMusic' Mix.Music
   | StopMusic
+  | Shake
 
 data ScriptData
   = Script
@@ -98,6 +99,9 @@ update input mcPos enemies = \case
 
   StopMusic : rest ->
     pure (noAction, rest) -- `render` takes care of playing the music
+
+  Shake : rest ->
+    pure (noAction { shake = True }, rest)
 
 goToLoc :: IPoint -> Command
 goToLoc p =

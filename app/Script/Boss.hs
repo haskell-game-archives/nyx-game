@@ -45,6 +45,7 @@ lScript MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs, MySDL.music = _m
   -- Boss
   [ Spawn $ sequence [Fast.make (Point 350 (-100)) ts]
   , WaitUntil noAction (const $ null)
+  , Shake
 
   , Wait noAction 170
 

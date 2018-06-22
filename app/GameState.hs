@@ -8,7 +8,9 @@
 
 module GameState where
 
+import SDL.Vect (V4(..))
 import qualified SDL
+import qualified SDL.Font as SDLF
 import qualified SDL.Mixer as Mix
 import qualified Play.Engine.MySDL.MySDL as MySDL
 
@@ -22,6 +24,7 @@ import Control.Lens
 import Data.Maybe
 import Data.Foldable
 import System.Random
+import qualified Data.Text as T
 import qualified Play.Engine.State as State
 import qualified Play.Engine.Load as Load
 
@@ -52,7 +55,9 @@ data State
   , _script :: Script.Script
   , _camera :: Int
   , _restart :: State.State
-  , _pause :: !Bool
+  , _isPause :: !Bool
+  , _isMute :: !Bool
+  , _hudFont :: SDLF.Font
   }
 
 makeFieldsNoPrefix ''State
@@ -60,6 +65,7 @@ makeFieldsNoPrefix ''State
 wantedAssets :: [(String, MySDL.ResourceType FilePath)]
 wantedAssets =
   [ ("bg", MySDL.Texture "background.png")
+  , ("unispace", MySDL.Font "unispace/unispace.ttf")
   --, ("bga", MySDL.Texture "bga.png")
   ]
   ++ SB.wantedAssets
@@ -79,10 +85,10 @@ mkState sd rs = do
 
 initState :: Script.ScriptData -> Script.Script -> MySDL.Resources -> Result State
 initState sd scrpt rs = do
-  case M.lookup "bg" (MySDL.textures rs) of
+  case (,) <$> M.lookup "bg" (MySDL.textures rs) <*> M.lookup "unispace" (MySDL.fonts rs) of
     Nothing ->
-      throwError ["Texture not found: bg"]
-    Just bgt -> do
+      throwError ["Texture or font not found: bg / unispace"]
+    Just (bgt, font) -> do
       mc' <- (SB.mkMainChar $ MySDL.textures rs)
       pure $ State
         (SBG.mkSBG bgt 1 (Point 800 1000) (Point 0 0))
@@ -105,6 +111,8 @@ initState sd scrpt rs = do
         0
         (mkGameState sd)
         False
+        False
+        font
 
 initEnemyTimer :: Int
 initEnemyTimer = 60
@@ -112,6 +120,7 @@ initEnemyTimer = 60
 update :: Input -> State -> Result (State.Command, State)
 update input state = do
   wSize <- _windowSize <$> SM.get
+  ismute <- _muteMusic <$> SM.get
 
   (acts, script') <- Script.update input (SB.get (state ^. mc) pos) (state ^. enemies) (state ^. script)
 
@@ -148,6 +157,7 @@ update input state = do
   let
     newState =
       state'
+        & set isMute ismute
         & set script script'
         & over bg SBG.updateSBG
         & over camera
@@ -180,11 +190,11 @@ update input state = do
   if
     | keyReleased KeyC input -> do
       pure (State.Replace $ state ^. restart, state)
-    | keyReleased KeyP input && state ^. pause -> do
-      pure (State.None, set pause False state)
-    | keyReleased KeyP input && not (state ^. pause) -> do
-      pure (State.None, set pause True state)
-    | state ^. pause -> do
+    | keyReleased KeyP input && state ^. isPause -> do
+      pure (State.None, set isPause False state)
+    | keyReleased KeyP input && not (state ^. isPause) -> do
+      pure (State.None, set isPause True state)
+    | state ^. isPause -> do
       pure (State.None, state)
     | otherwise ->
       pure (Script.command acts, newState)
@@ -210,10 +220,6 @@ flipEnemyDir = \case
 render :: SDL.Renderer -> State -> IO ()
 render renderer state = do
 
-  if state ^. pause
-    then Mix.pauseMusic
-    else Mix.resumeMusic
-
   cam' <- Point <$> randomRIO (-1, 1) <*> randomRIO (-1, 1) :: IO FPoint
   let cam = addPoint $ fmap (floor . (*) (fromIntegral $ state ^. camera `div` 3)) cam'
   SBG.render renderer cam (state ^. bg)
@@ -223,7 +229,18 @@ render renderer state = do
   forM_ (state ^. decObjs) (\(DO.DecObj (DO.DecObj'{..})) -> _render renderer cam _state)
   forM_ (state ^. mcBullets) (Bullet.render renderer cam)
   forM_ (state ^. enemyBullets) (Bullet.render renderer cam)
+
+  when (state ^. isMute) $
+    renderText renderer (state ^. hudFont) (Point 40 30) "MUTED"
+
   Script.render renderer cam (state ^. script)
+
+  if state ^. isPause
+    then do
+      Mix.pauseMusic
+      renderText renderer (state ^. hudFont) (Point 370 380) "PAUSE"
+    else Mix.resumeMusic
+
 
 dirToInput :: IPoint -> Input
 dirToInput dir =
@@ -233,3 +250,24 @@ dirToInput dir =
       $  (if dir ^. x > 0 then [KeyRight] else if dir ^. x < 0 then [KeyLeft] else [])
       ++ (if dir ^. y > 0 then [KeyUp]    else if dir ^. y < 0 then [KeyDown] else [])
 
+
+renderText :: SDL.Renderer -> SDLF.Font -> IPoint -> T.Text -> IO ()
+renderText renderer font loc txt =
+  if T.null txt
+    then pure ()
+    else do
+      texture' <- SDL.createTextureFromSurface renderer
+        =<< SDLF.solid
+          font
+          (V4 255 255 255 255)
+          txt
+      ti <- SDL.queryTexture texture'
+      SDL.copy
+        renderer
+        texture'
+        Nothing
+        (Just $ toRect
+          loc
+          (Point (fromIntegral $ SDL.textureWidth ti) (fromIntegral $ SDL.textureHeight ti))
+        )
+      SDL.destroyTexture texture'
