@@ -136,6 +136,8 @@ data Request
   | DestroyTexture SDL.Texture
   | MakeText (String, FilePath) T.Text
   | PlayMusic (String, FilePath)
+  | MuteMusic
+  | UnmuteMusic
 
 data Response
   = ResourcesLoaded Resources
@@ -181,6 +183,11 @@ runRequest resources queue renderer req =
       PlayMusic (n, p) -> do
         (_, RMusic msc) <- loadResource renderer resources (n, Music p)
         Mix.playMusic Mix.Forever msc
+      MuteMusic -> do
+        Mix.setMusicVolume 0
+      UnmuteMusic -> do
+        Mix.setMusicVolume 100
+
 
 loadResource renderer resources (n, r) =
   case r of

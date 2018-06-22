@@ -56,9 +56,20 @@ update
 update responses payload isKeyPressed (settings, stack) =
   let
     keys = makeEvents (_keyStats settings) payload isKeyPressed (_keyMap settings)
+    toggleMuteFlag
+      | keyClicked' KeyM keys = not
+      | otherwise = id
+    settings' = settings
+      & over muteMusic toggleMuteFlag
+      & set keyStats keys
+    toggleMuteCmd
+      | settings' ^. muteMusic = (:) MySDL.MuteMusic
+      | not (settings' ^. muteMusic) = (:) MySDL.UnmuteMusic
+      | otherwise = id
+
   in pure
-    . fmap (\(setts, (reqs, states)) -> (reqs, (setts, states)))
-    . (keys `deepseq` runResult $! set keyStats keys settings)
+    . fmap (\(setts, (reqs, states)) -> (toggleMuteCmd reqs, (setts, states)))
+    . (keys `deepseq` runResult $! settings')
     $ State.updater (Input keys responses) stack
 
 

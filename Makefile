@@ -8,6 +8,11 @@ setup:
 build:
 	stack build
 
+.PHONY: dev
+
+dev:
+	stack build --fast --file-watch
+
 .PHONY: exec
 
 exec:

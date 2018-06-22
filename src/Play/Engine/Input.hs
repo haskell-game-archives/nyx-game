@@ -35,6 +35,7 @@ data Key
   | KeyB
   | KeyC
   | KeyD
+  | KeyM
   | KeyQuit
   deriving (Show, Read, Eq, Ord, Bounded, Enum, Generic, NFData)
 
@@ -60,6 +61,7 @@ defKeyMap = map swap
   , (SDL.ScancodeX, KeyB)
   , (SDL.ScancodeC, KeyC)
   , (SDL.ScancodeV, KeyD)
+  , (SDL.ScancodeM, KeyM)
   ]
 
 makeEvents :: Keys -> [SDL.EventPayload] -> (SDL.Scancode -> Bool) -> [(Key, SDL.Scancode)] -> Keys
@@ -85,16 +87,28 @@ testKey :: Key -> M.Map Key Bool -> Bool
 testKey key = maybe False id . M.lookup key
 
 keyReleased :: Key -> Input -> Bool
-keyReleased key = maybe False (== Release) . M.lookup key . inputKeys
+keyReleased key = keyReleased' key . inputKeys
 
 keyClicked :: Key -> Input -> Bool
-keyClicked key = maybe False (== Click) . M.lookup key . inputKeys
+keyClicked key = keyClicked' key . inputKeys
 
 keyPressed :: Key -> Input -> Bool
-keyPressed key = maybe False (/= Idle) . M.lookup key . inputKeys
+keyPressed key = keyPressed' key . inputKeys
 
 keyIdle :: Key -> Input -> Bool
-keyIdle key = maybe False (== Idle) . M.lookup key . inputKeys
+keyIdle key = keyIdle' key . inputKeys
+
+keyReleased' :: Key -> Keys -> Bool
+keyReleased' key = maybe False (== Release) . M.lookup key
+
+keyClicked' :: Key -> Keys -> Bool
+keyClicked' key = maybe False (== Click) . M.lookup key
+
+keyPressed' :: Key -> Keys -> Bool
+keyPressed' key = maybe False (/= Idle) . M.lookup key
+
+keyIdle' :: Key -> Keys -> Bool
+keyIdle' key = maybe False (== Idle) . M.lookup key
 
 keysToMovement :: Float -> Input -> FPoint
 keysToMovement speed keys =

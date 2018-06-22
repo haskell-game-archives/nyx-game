@@ -16,6 +16,7 @@ data Settings
   { _windowSize :: !Size
   , _keyMap :: ![(Key, SDL.Scancode)]
   , _keyStats :: !Keys
+  , _muteMusic :: !Bool
   }
   deriving (Show)
 
@@ -30,4 +31,5 @@ def = Settings
   { _windowSize = Point 800 600
   , _keyMap = defKeyMap
   , _keyStats = initKeyStats
+  , _muteMusic = False
   }
