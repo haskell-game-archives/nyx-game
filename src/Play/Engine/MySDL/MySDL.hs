@@ -13,6 +13,7 @@ import System.IO
 import Control.Concurrent.STM.TQueue
 import Control.Concurrent.STM
 import Control.Concurrent.Async
+import qualified Data.Vector as V
 
 import qualified Foreign.C.Types as C
 import qualified Data.Map as M
@@ -40,10 +41,13 @@ withWindow title winConf go = do
   window <- SDL.createWindow title winConf
   SDL.showWindow window
 
+  mJoystick <- getJoystick
+
   result <- Mix.withAudio Mix.defaultAudio 256 $ do
 
     go window
 
+  sequence_ $ SDL.closeJoystick <$> mJoystick
   SDL.destroyWindow window
   SDLI.quit
   SDLF.quit
@@ -73,6 +77,7 @@ apploop
   -> IO a
 apploop resources responsesQueue renderer world update render = do
   events <- collectEvents
+  --unless (null events) $ print events
   keyState <- SDL.getKeyboardState
   responses <- fmap (maybe [] (:[])) $ atomically $ tryReadTQueue responsesQueue
   update responses events keyState world >>= \case
@@ -92,7 +97,23 @@ apploop resources responsesQueue renderer world update render = do
               | isWindowExposed evs = when isPlaying Mix.resumeMusic
               | otherwise = loop =<< collectEvents
           loop events
+
         apploop resources responsesQueue renderer newWorld update render
+
+
+
+getJoystick :: IO (Maybe SDL.Joystick)
+getJoystick = do
+  joysticks <- SDL.availableJoysticks
+  let
+    joystick =
+      if V.length joysticks == 0
+        then Nothing
+        else pure (joysticks V.! 0)
+
+  sequence $ SDL.openJoystick <$> joystick
+
+
 
 setBGColor :: MonadIO m => Linear.V4 Word8 -> SDL.Renderer -> m SDL.Renderer
 setBGColor color renderer = do

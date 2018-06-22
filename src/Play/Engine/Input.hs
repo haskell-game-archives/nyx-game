@@ -2,6 +2,8 @@
 
 module Play.Engine.Input where
 
+import Data.Maybe
+import Data.Word (Word8)
 import Data.Tuple
 import qualified SDL
 import qualified Play.Engine.MySDL.MySDL as MySDL
@@ -10,6 +12,7 @@ import qualified Data.Map as M
 import GHC.Generics
 import Control.DeepSeq
 
+--import Debug.Trace
 
 data Input
   = Input
@@ -64,11 +67,61 @@ defKeyMap = map swap
   , (SDL.ScancodeM, KeyM)
   ]
 
+-- can't have more than one binding to the same key as this will create a state accumulation problem
+defControllerButtonMap :: [(Key, Word8)]
+defControllerButtonMap = map swap
+  [ (13, KeyUp)
+  , (14, KeyDown)
+  , (11, KeyLeft)
+  , (12, KeyRight)
+  , (0, KeyB)
+  , (5, KeyA)
+  , (3, KeyC)
+  ]
+
+keepState :: Maybe Action -> Bool
+keepState state
+  | state == Just Click = True
+  | state == Just Hold = True
+  | state == Just Release = False
+  | state == Just Idle = False
+
+  | otherwise = False
+
+checkControllerEvent :: Word8 -> SDL.EventPayload -> Maybe Bool
+checkControllerEvent btn = \case
+  SDL.JoyButtonEvent (SDL.JoyButtonEventData _ btn' SDL.JoyButtonPressed)
+    | btn == btn' -> pure True
+  SDL.JoyButtonEvent (SDL.JoyButtonEventData _ btn' SDL.JoyButtonReleased)
+    | btn == btn' -> pure False
+  SDL.JoyAxisEvent (SDL.JoyAxisEventData _ btn' _)
+    | btn == btn' -> pure True
+  _ -> Nothing
+
 makeEvents :: Keys -> [SDL.EventPayload] -> (SDL.Scancode -> Bool) -> [(Key, SDL.Scancode)] -> Keys
-makeEvents !current _ !isKeyPressed =
-  updateKeys current
-  . M.fromListWith max
-  . fmap (fmap isKeyPressed)
+makeEvents !current payload !isKeyPressed =
+  let
+    keyboard =
+      fmap (fmap isKeyPressed)
+    controller =
+      fmap
+        (\(key, btn) ->
+          ( key
+          ,
+            let
+              es = mapMaybe (checkControllerEvent btn) payload
+            in
+              if null es
+                then keepState (M.lookup key current)
+                else any id es
+          )
+        )
+      $ defControllerButtonMap
+  in
+    updateKeys current
+    . M.fromListWith max
+    . (controller ++)
+    . keyboard
 
 updateKeys :: Keys -> M.Map Key Bool -> Keys
 updateKeys !keys !newStates =

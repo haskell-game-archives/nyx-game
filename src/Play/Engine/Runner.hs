@@ -56,12 +56,15 @@ update
 update responses payload isKeyPressed (settings, stack) =
   let
     keys = makeEvents (_keyStats settings) payload isKeyPressed (_keyMap settings)
+
     toggleMuteFlag
       | keyClicked' KeyM keys = not
       | otherwise = id
+
     settings' = settings
       & over muteMusic toggleMuteFlag
       & set keyStats keys
+
     toggleMuteCmd
       | settings' ^. muteMusic = (:) MySDL.MuteMusic
       | not (settings' ^. muteMusic) = (:) MySDL.UnmuteMusic
