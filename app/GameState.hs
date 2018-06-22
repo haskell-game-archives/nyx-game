@@ -9,6 +9,7 @@
 module GameState where
 
 import qualified SDL
+import qualified SDL.Mixer as Mix
 import qualified Play.Engine.MySDL.MySDL as MySDL
 
 import Play.Engine.Utils
@@ -51,6 +52,7 @@ data State
   , _script :: Script.Script
   , _camera :: Int
   , _restart :: State.State
+  , _pause :: !Bool
   }
 
 makeFieldsNoPrefix ''State
@@ -102,6 +104,7 @@ initState sd scrpt rs = do
         scrpt
         0
         (mkGameState sd)
+        False
 
 initEnemyTimer :: Int
 initEnemyTimer = 60
@@ -177,6 +180,12 @@ update input state = do
   if
     | keyReleased KeyC input -> do
       pure (State.Replace $ state ^. restart, state)
+    | keyReleased KeyP input && state ^. pause -> do
+      pure (State.None, set pause False state)
+    | keyReleased KeyP input && not (state ^. pause) -> do
+      pure (State.None, set pause True state)
+    | state ^. pause -> do
+      pure (State.None, state)
     | otherwise ->
       pure (Script.command acts, newState)
 
@@ -200,6 +209,11 @@ flipEnemyDir = \case
 
 render :: SDL.Renderer -> State -> IO ()
 render renderer state = do
+
+  if state ^. pause
+    then Mix.pauseMusic
+    else Mix.resumeMusic
+
   cam' <- Point <$> randomRIO (-1, 1) <*> randomRIO (-1, 1) :: IO FPoint
   let cam = addPoint $ fmap (floor . (*) (fromIntegral $ state ^. camera `div` 3)) cam'
   SBG.render renderer cam (state ^. bg)

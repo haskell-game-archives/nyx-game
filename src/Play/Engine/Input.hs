@@ -39,6 +39,7 @@ data Key
   | KeyC
   | KeyD
   | KeyM
+  | KeyP
   | KeyQuit
   deriving (Show, Read, Eq, Ord, Bounded, Enum, Generic, NFData)
 
@@ -65,6 +66,7 @@ defKeyMap = map swap
   , (SDL.ScancodeC, KeyC)
   , (SDL.ScancodeV, KeyD)
   , (SDL.ScancodeM, KeyM)
+  , (SDL.ScancodeP, KeyP)
   ]
 
 -- can't have more than one binding to the same key as this will create a state accumulation problem
@@ -103,7 +105,7 @@ makeEvents !current payload !isKeyPressed =
   let
     keyboard =
       fmap (fmap isKeyPressed)
-    controller =
+    _controller =
       fmap
         (\(key, btn) ->
           ( key
@@ -120,7 +122,6 @@ makeEvents !current payload !isKeyPressed =
   in
     updateKeys current
     . M.fromListWith max
-    . (controller ++)
     . keyboard
 
 updateKeys :: Keys -> M.Map Key Bool -> Keys
