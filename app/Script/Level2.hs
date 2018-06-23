@@ -33,7 +33,7 @@ wantedAssets =
      , ("saito2", MySDL.Texture "saito2.png")
      , ("music", MySDL.Music "battle.ogg")
      , ("music-end", MySDL.Music "shushushu.ogg")
-     , ("rin", MySDL.Texture "rin.png")
+     , ("nyx-avatar", MySDL.Texture "nyx-avatar.png")
      ]
 
 

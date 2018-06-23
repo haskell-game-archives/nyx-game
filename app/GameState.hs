@@ -196,6 +196,8 @@ update input state = do
       pure (State.None, set isPause True state)
     | state ^. isPause -> do
       pure (State.None, state)
+    | keyReleased KeyQuit input -> do
+      pure (State.Done, state)
     | otherwise ->
       pure (Script.command acts, newState)
 

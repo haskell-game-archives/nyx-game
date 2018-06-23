@@ -25,8 +25,8 @@ wantedAssets :: [(String, MySDL.ResourceType FilePath)]
 wantedAssets =
   TB.wantedAssets
   ++ [ ("music", MySDL.Music "shushushu.ogg")
-     , ("nix", MySDL.Texture "rin.png")
-     , ("jas", MySDL.Texture "saito.png")
+     , ("nyx-avatar", MySDL.Texture "nyx-avatar.png")
+     , ("customer-avatar", MySDL.Texture "customer.png")
      ]
 
 
@@ -50,94 +50,81 @@ introScript MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs, MySDL.music 
       Wait act{ changeSprite = spr } 0
 
   , LoadTextBox noAction $
-    TB.make TB.Bottom 15 ". . ." Nothing (M.lookup "unispace" fs)
+    TB.make TB.All 15 "13:11, 16 April 1993." Nothing (M.lookup "unispace" fs)
 
-  , nixVoice ts fs "Hi."
-  , nixVoice ts fs "I'm Nix."
+  , nyxInnerVoice fs "Hi."
+  , nyxInnerVoice fs "I'm Nyx."
 
-  , nixVoice ts fs "30, self employed. A hacker."
-  , nixVoice ts fs $ T.unwords
-    [ "Not the criminal kind, mind you."
+  , nyxInnerVoice fs "I work at this store. Fixing computers."
+  , nyxInnerVoice fs $ T.unwords
+    [ "While there still aren't many computers in personal use, their numbers keep increasing by the day."
     ]
-  , nixVoice ts fs $ T.unwords
-    [ "I offer my services and expertise to"
-    , "companies. I expose and help fix security"
-    , "holes in their systems."
+  , nyxInnerVoice fs $ T.unwords
+    [ "So I believe this is a good business to be in."
     ]
-  , nixVoice ts fs "I've been doing it for a few years now."
-  , nixVoice ts fs "It's honest work, I promise."
-  , nixVoice ts fs "It's just... a bit sparse sometimes."
-  , nixVoice ts fs $ T.unwords
-    [ "So in days like today, I scrap some mailing"
-    , "lists, looking for work."
-    ]
-  , nixVoice ts fs "And I think that today, I hit the jackpot."
+  , nyxInnerVoice fs "Sorry, gotta work now. A customer just came in."
+
+  , customerVoice ts fs "Hey. This is Nyx Fix, right? You fix computers?"
+
+  , nyxVoice ts fs "Yeah. How can I help you?"
+
+  , customerVoice ts fs "My computer is stuck. I can't run any programs. Can you do anything about it?"
+
+  , nyxInnerVoice fs "..."
+
+  , nyxVoice ts fs "Yep. It looks like it's infected with viruses."
+
+  , customerVoice ts fs "A virus?! Will I get sick?"
+
+  , nyxVoice ts fs "Computer viruses. It only affects computers."
+  , nyxVoice ts fs "I can fix it but I'll need to keep it here for a few days."
+  , nyxVoice ts fs "Can you leave your computer and your contact information?\nI'll call you when it's fixed."
+
+  , customerVoice ts fs "Oh, good. Yes. Thank you. I'll wait for your call."
+
+  , nyxVoice ts fs "Have a nice day."
+
+  , customerVoice ts fs "You too."
+
+  , nyxInnerVoice fs "..."
 
   , StopMusic
   , Wait noAction 60
 
-  , nixVoice ts fs $ T.unwords
-    [ "JAS, an up-and-coming security start-up has"
-    , "been making their name known. I've heard"
-    , "their new security product is top notch."
-    ]
-
-  , nixVoice ts fs $ T.unwords
-    [ "And they've just announced a challenge for"
-    , "hackers such as myself."
-    ]
-
+  , customerVoice ts fs "..."
   , LoadTextBox noAction $
-    TB.make TB.Bottom 3
-    (T.unwords
-      [ "\"Find security holes in our system, and we'll"
-      , "award you with 20,000$!\""
-      ]
-    )
-    Nothing
-    (M.lookup "unispace" fs)
+    TB.make TB.Top 15 "*Click*" Nothing (M.lookup "unispace" fs)
+  , customerVoice ts fs "..."
 
-  , nixVoice ts fs $ T.unwords
-    [ "With this kind of money, I could live"
-    , "comfortably for a few months without"
-    , "worring about anything!"
-    ]
+  , customerVoice ts fs "Yeah, it's me."
+  , customerVoice ts fs "It is done."
+  , customerVoice ts fs "Now all we can do is wait and see if she can actually do it..."
 
-  , nixVoice ts fs $ T.unwords
-    [ "And it's always a good idea to get to know"
-    , "the latest technology before everyone else."
-    ]
-
-  , nixVoice ts fs "So with that in mind..."
-
-  , nixVoice ts fs "Challenge accepted!"
-
-  , Wait noAction 120
-
-  , jasVoice ts fs "..."
-  , jasVoice ts fs "Okay. We've confirmed your participation in our challenge."
-  , jasVoice ts fs $ T.unwords $
-    [ "To verify that you've exposed a weakness in our software,"
-    , "you'll have to provide us with some proof."
-    ]
-  , jasVoice ts fs "For example, the password for the system's admin account will be sufficient."
-  , jasVoice ts fs "Notice that this challenge has a time limit of 72 hours."
-  , jasVoice ts fs "Good luck."
   , Wait noAction 60
-  , nixVoice ts fs "Let the hacking begin!"
+  , nyxVoice ts fs "Alright."
+  , nyxVoice ts fs "Let the fixing begin!"
+
+
+  , Wait noAction 60
 
   , Wait act{ command = State.Replace L1.level1 } 60
   ]
 
 
-nixVoice ts fs txt =
+nyxInnerVoice fs txt =
   LoadTextBox noAction $
     TB.make TB.Bottom 3 txt
-    (M.lookup "nix" ts)
+    Nothing
     (M.lookup "unispace" fs)
 
-jasVoice ts fs txt =
+nyxVoice ts fs txt =
   LoadTextBox noAction $
     TB.make TB.Bottom 3 txt
-    (M.lookup "jas" ts)
+    (M.lookup "nyx-avatar" ts)
+    (M.lookup "unispace" fs)
+
+customerVoice ts fs txt =
+  LoadTextBox noAction $
+    TB.make TB.Top 3 txt
+    (M.lookup "customer-avatar" ts)
     (M.lookup "unispace" fs)

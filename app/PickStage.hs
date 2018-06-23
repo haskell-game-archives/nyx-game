@@ -6,13 +6,13 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module StartScreen where
+module PickStage where
 
 import SDL.Vect (V4(..))
 import qualified SDL
 import qualified Play.Engine.MySDL.MySDL as MySDL
 
-import Play.Engine.Utils
+import Play.Engine.Utils hiding (head)
 import Play.Engine.Types
 import Play.Engine.Input as I
 import Play.Engine.Settings
@@ -28,7 +28,9 @@ import qualified Play.Engine.Load as Load
 import qualified Control.Monad.State as SM
 
 import qualified Script.Introduction as Intro
-import qualified PickStage as Pick
+import qualified Script.Level1 as Level1
+import qualified Script.Level2 as Level2
+import qualified Script.Boss as Boss
 import qualified Button as Btn
 
 
@@ -62,17 +64,30 @@ initState rs = do
     Nothing ->
       throwError ["Texture not found: bg"]
     Just bgt -> do
-      startBtn <- Btn.make (Point 320 600) (Point 180 50) rs "Start"
-      pickStageBtn <- Btn.make (Point 320 660) (Point 180 50) rs "Pick Stage"
-      exitBtn <- Btn.make (Point 320 720) (Point 180 50) rs "Exit"
+      let
+        makeBtn' n =
+          Btn.make (Point 320 (400 + n * 60)) (Point 180 50) rs
+
+        makeBtn name state n =
+          (, pure $ State.Replace state)
+            <$> makeBtn' n name
+
+      btns <- sequence $ zipWith (flip ($)) [0..] $
+        [ makeBtn "Intro" Intro.intro
+        , makeBtn "Level1" Level1.level1
+        , makeBtn "Level2" Level2.level2
+        , makeBtn "Boss" Boss.boss
+
+        , \n -> (, pure $ State.Done)
+          <$> makeBtn' n "Back"
+        ]
+
       pure $ State
         { _background = bgt
         , _buttons = Z.ListZipper
           []
-          (startBtn, pure $ State.Push Intro.intro)
-          [ (pickStageBtn, pure $ State.Push Pick.make)
-          , (exitBtn, throwError [])
-          ]
+          (head btns)
+          (tail btns)
         }
 
 update :: Input -> State -> Result (State.Command, State)
@@ -95,9 +110,8 @@ update input state = do
 
 render :: SDL.Renderer -> State -> IO ()
 render renderer state = do
-  void $ MySDL.setBGColor (V4 10 0 20 255) renderer
+  void $ MySDL.setBGColor (V4 50 0 30 255) renderer
   void $ Z.diffMapM
     (Btn.render renderer False)
     (Btn.render renderer True)
     (fmap fst $ state ^. buttons)
-
