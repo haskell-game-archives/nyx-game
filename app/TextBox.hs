@@ -77,7 +77,7 @@ make py spd txt mavatar (Just fnt) =
 
 splitLine :: Bool -> T.Text -> [T.Text]
 splitLine hasAvatar txt =
-  groupWhile (\t1 t2 -> plus1' (T.length t1) + T.length t2 <= (if hasAvatar then 44 else 52)) ""
+  groupWhile (\t1 t2 -> plus1' (T.length t1) + T.length t2 <= (if hasAvatar then 43 else 50)) ""
   . T.words
   $ txt
 

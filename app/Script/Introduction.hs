@@ -49,9 +49,6 @@ introScript MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs, MySDL.music 
     in
       Wait act{ changeSprite = spr } 0
 
-  , LoadTextBox noAction $
-    TB.make TB.All 15 "13:11, 16 April 1993." Nothing (M.lookup "unispace" fs)
-
   , nyxInnerVoice fs "Hi."
   , nyxInnerVoice fs "I'm Nyx."
 

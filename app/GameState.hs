@@ -56,6 +56,7 @@ data State
   , _camera :: Int
   , _restart :: State.State
   , _isPause :: !Bool
+  , _pauseChanged :: !Bool
   , _isMute :: !Bool
   , _hudFont :: SDLF.Font
   }
@@ -112,6 +113,7 @@ initState sd scrpt rs = do
         (mkGameState sd)
         False
         False
+        False
         font
 
 initEnemyTimer :: Int
@@ -157,6 +159,7 @@ update input state = do
   let
     newState =
       state'
+        & set pauseChanged False
         & set isMute ismute
         & set script script'
         & over bg SBG.updateSBG
@@ -191,9 +194,9 @@ update input state = do
     | keyReleased KeyC input -> do
       pure (State.Replace $ state ^. restart, state)
     | keyReleased KeyP input && state ^. isPause -> do
-      pure (State.None, set isPause False state)
+      pure (State.None, set pauseChanged True $ set isPause False state)
     | keyReleased KeyP input && not (state ^. isPause) -> do
-      pure (State.None, set isPause True state)
+      pure (State.None, set pauseChanged True $ set isPause True state)
     | state ^. isPause -> do
       pure (State.None, state)
     | keyReleased KeyQuit input -> do
@@ -237,11 +240,15 @@ render renderer state = do
 
   Script.render renderer cam (state ^. script)
 
-  if state ^. isPause
-    then do
-      Mix.pauseMusic
-      renderText renderer (state ^. hudFont) (Point 370 380) "PAUSE"
-    else Mix.resumeMusic
+  when (state ^. isPause)
+    $ renderText renderer (state ^. hudFont) (Point 370 380) "PAUSE"
+
+  when (state ^. pauseChanged) $
+    if (state ^. isPause)
+      then
+        Mix.pauseMusic
+      else
+        Mix.resumeMusic
 
 
 dirToInput :: IPoint -> Input
