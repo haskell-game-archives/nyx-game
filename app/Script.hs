@@ -4,6 +4,7 @@ import Data.Maybe
 import qualified SDL
 import qualified SDL.Mixer as Mix
 import qualified Play.Engine.MySDL.MySDL as MySDL
+import qualified Data.ByteString as BS
 
 import Enemy
 import qualified TextBox as TB
@@ -21,8 +22,8 @@ data Command
   | Spawn (Result [Enemy])
   | LoadTextBox !Actions (Result TB.TextBox)
   | WaitTextBox !Actions TB.TextBox
-  | PlayMusic (String, Maybe Mix.Music)
-  | PlayMusic' Mix.Music
+  | PlayMusic (String, Maybe BS.ByteString)
+  | PlayMusic' BS.ByteString
   | StopMusic
   | Shake
 
@@ -119,8 +120,8 @@ render renderer _ =
     f = \case
       WaitTextBox _ tb ->
         TB.render renderer tb
-      PlayMusic' m ->
-        Mix.playMusic Mix.Forever m
+      PlayMusic' m -> do
+        Mix.playMusic Mix.Forever =<< Mix.decode m
       StopMusic ->
         void $ Mix.fadeOutMusic (1000 * 2) -- milliseconds
       _ -> pure ()

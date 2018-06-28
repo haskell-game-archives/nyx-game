@@ -6,13 +6,14 @@ module Play.Engine.MySDL.MySDL where
 
 import Data.Word (Word8)
 import Data.Text (Text)
-import Control.Exception
+import Control.Exception (catch, SomeException(..))
 import Control.Monad.Identity
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import System.IO
 import Control.Concurrent.STM.TQueue
 import Control.Concurrent.STM
 import Control.Concurrent.Async
+import qualified Data.ByteString as BS
 import qualified Data.Vector as V
 
 import qualified Foreign.C.Types as C
@@ -145,7 +146,7 @@ isWindowExposed = any $ \case
 data Resource
   = RTexture SDL.Texture
   | RFont SDLF.Font
-  | RMusic Mix.Music
+  | RMusic BS.ByteString
 
 data ResourceType a
   = Texture a
@@ -169,7 +170,7 @@ data ResourcesT f
   = Resources
   { textures :: HKD f (M.Map FilePath SDL.Texture)
   , fonts :: HKD f (M.Map FilePath SDLF.Font)
-  , music :: HKD f (M.Map FilePath Mix.Music)
+  , music :: HKD f (M.Map FilePath BS.ByteString)
   }
 
 type family HKD f a where
@@ -203,7 +204,7 @@ runRequest resources queue renderer req =
         atomically $ writeTQueue queue $ NewText text
       PlayMusic (n, p) -> do
         (_, RMusic msc) <- loadResource renderer resources (n, Music p)
-        Mix.playMusic Mix.Forever msc
+        Mix.playMusic Mix.Forever =<< Mix.decode msc
       MuteMusic -> do
         Mix.setMusicVolume 0
       UnmuteMusic -> do
@@ -248,11 +249,11 @@ loadResource renderer resources (n, r) =
         Just msc ->
           pure msc
         Nothing -> do
-          msc <- Mix.load f
+          contents <- BS.readFile f
           atomically $ do
             msc' <- readTVar (music resources)
-            writeTVar (music resources) (M.insert f msc msc')
-          pure msc
+            writeTVar (music resources) (M.insert f contents msc')
+          pure contents
 
 resourcesToResponse :: [(String, Resource)] -> Response
 resourcesToResponse rs =
