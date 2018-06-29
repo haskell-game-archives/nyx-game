@@ -66,7 +66,7 @@ initState rs = do
     Just bgt -> do
       let
         makeBtn' n =
-          Btn.make (Point 320 (400 + n * 60)) (Point 180 50) rs
+          Btn.make (Point 320 (600 + n * 60)) (Point 180 50) rs
 
         makeBtn name state n =
           (, pure $ State.Replace state)

@@ -54,9 +54,9 @@ make posi sz res txt = do
 update :: Input -> Button -> Result (Bool, Button)
 update input btn =
   pure
-    $ (keyClicked KeyA input,)
+    $ (keyClicked KeyStart input || keyClicked KeyA input,)
     $ btn
-    & over isClicked (|| keyClicked KeyA input)
+    & over isClicked (|| keyClicked KeyStart input || keyClicked KeyA input)
 
 render :: SDL.Renderer -> Bool -> Button -> IO ()
 render renderer marked btn

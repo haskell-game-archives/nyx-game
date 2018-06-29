@@ -40,6 +40,7 @@ data Key
   | KeyD
   | KeyM
   | KeyP
+  | KeyStart
   | KeyQuit
   deriving (Show, Read, Eq, Ord, Bounded, Enum, Generic, NFData)
 
@@ -59,6 +60,7 @@ defKeyMap = map swap
   , (SDL.ScancodeDown, KeyDown)
   , (SDL.ScancodeLeft, KeyLeft)
   , (SDL.ScancodeRight, KeyRight)
+  , (SDL.ScancodeReturn, KeyStart)
   , (SDL.ScancodeEscape, KeyQuit)
   , (SDL.ScancodeQ, KeyQuit)
   , (SDL.ScancodeZ, KeyA)
@@ -79,6 +81,7 @@ defControllerButtonMap = map swap
   , (0, KeyB)
   , (5, KeyA)
   , (3, KeyC)
+  , (7, KeyStart)
   ]
 
 keepState :: Maybe Action -> Bool
