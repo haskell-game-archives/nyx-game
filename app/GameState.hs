@@ -8,7 +8,6 @@
 
 module GameState where
 
-import SDL.Vect (V4(..))
 import qualified SDL
 import qualified SDL.Font as SDLF
 import qualified SDL.Mixer as Mix
@@ -24,7 +23,6 @@ import Control.Lens
 import Data.Maybe
 import Data.Foldable
 import System.Random
-import qualified Data.Text as T
 import qualified Play.Engine.State as State
 import qualified Play.Engine.Load as Load
 
@@ -259,24 +257,3 @@ dirToInput dir =
       $  (if dir ^. x > 0 then [KeyRight] else if dir ^. x < 0 then [KeyLeft] else [])
       ++ (if dir ^. y > 0 then [KeyUp]    else if dir ^. y < 0 then [KeyDown] else [])
 
-
-renderText :: SDL.Renderer -> SDLF.Font -> IPoint -> T.Text -> IO ()
-renderText renderer font loc txt =
-  if T.null txt
-    then pure ()
-    else do
-      texture' <- SDL.createTextureFromSurface renderer
-        =<< SDLF.solid
-          font
-          (V4 255 255 255 255)
-          txt
-      ti <- SDL.queryTexture texture'
-      SDL.copy
-        renderer
-        texture'
-        Nothing
-        (Just $ toRect
-          loc
-          (Point (fromIntegral $ SDL.textureWidth ti) (fromIntegral $ SDL.textureHeight ti))
-        )
-      SDL.destroyTexture texture'

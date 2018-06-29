@@ -8,7 +8,10 @@
 -- a utility module
 module Play.Engine.Utils where
 
+import SDL.Vect (V4(..))
 import qualified SDL
+import qualified SDL.Font as SDLF
+import qualified Data.Text as T
 import qualified Foreign.C.Types as C (CInt)
 import qualified Linear
 import qualified Linear.Affine as Linear
@@ -223,6 +226,26 @@ mkAngles initAngle ((`mod` 200) -> n) =
     force $ map ((+) (fromIntegral initAngle) . (*) m . fromIntegral) [0..(n-1)]
 
 
+renderText :: SDL.Renderer -> SDLF.Font -> IPoint -> T.Text -> IO ()
+renderText renderer font loc txt =
+  if T.null txt
+    then pure ()
+    else do
+      texture' <- SDL.createTextureFromSurface renderer
+        =<< SDLF.solid
+          font
+          (V4 255 255 255 255)
+          txt
+      ti <- SDL.queryTexture texture'
+      SDL.copy
+        renderer
+        texture'
+        Nothing
+        (Just $ toRect
+          loc
+          (Point (fromIntegral $ SDL.textureWidth ti) (fromIntegral $ SDL.textureHeight ti))
+        )
+      SDL.destroyTexture texture'
 
 -----------
 -- Stack --
