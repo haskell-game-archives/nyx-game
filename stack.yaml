@@ -3,6 +3,7 @@ packages:
 - '.'
 extra-deps:
 - sdl2-2.4.1.0
+- sdl2-mixer-1.1.0
 
 flags: {}
 extra-package-dbs: []
