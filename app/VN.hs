@@ -47,7 +47,7 @@ makeFieldsNoPrefix ''State
 
 wantedAssets :: [(String, MySDL.ResourceType FilePath)]
 wantedAssets =
-  [ ("bg", MySDL.Texture "vn.gif")
+  [ ("bg", MySDL.Texture "VNBG.png")
   , ("unispace", MySDL.Font "unispace/unispace.ttf")
   ]
 
@@ -71,7 +71,17 @@ initState scrpt rs = do
       throwError ["Texture not found: bg ot unispace"]
     Just (bgt, font) -> do
       pure $ State
-        { _bg = fromJust $ Spr.make $ Spr.simpleArgs (Point 800 1000) bgt
+        { _bg =
+          fromJust
+            $ Spr.make
+            $ Spr.MakeArgs
+            { mkActionmap = ["normal"]
+            , mkAction = "normal"
+            , mkTexture = bgt
+            , mkSize = Point 800 1000
+            , mkMaxPos = 8
+            , mkSpeed = 8
+            }
         , _resources = rs
         , _script = scrpt
         , _camera = 0

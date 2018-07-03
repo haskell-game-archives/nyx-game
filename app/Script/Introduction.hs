@@ -20,6 +20,7 @@ intro =
   VN.make 1 $ Script
     wantedAssets
     introScript
+    intro
 
 wantedAssets :: [(String, MySDL.ResourceType FilePath)]
 wantedAssets =
@@ -49,6 +50,7 @@ introScript MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs, MySDL.music 
     in
       Wait act{ changeSprite = spr } 0
 
+  , Wait noAction 120
   , nyxInnerVoice fs "Hi."
   , nyxInnerVoice fs "I'm Nyx."
 
@@ -61,15 +63,17 @@ introScript MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs, MySDL.music 
     ]
   , nyxInnerVoice fs "Sorry, gotta work now. A customer just came in."
 
-  , customerVoice ts fs "Hey. This is Nyx Fix, right? You fix computers?"
+  , customerVoice ts fs "Hey."
+  , customerVoice ts fs "This is Nyx Fix, right? You fix computers?"
 
-  , nyxVoice ts fs "Yeah. How can I help you?"
+  , nyxVoice ts fs "Yeah.          \nHow can I help you?"
 
   , customerVoice ts fs "My computer is stuck. I can't run any programs. Can you do anything about it?"
 
-  , nyxInnerVoice fs "..."
+  , nyxVoice ts fs "Let me have a look..."
+  , Wait noAction 120
 
-  , nyxVoice ts fs "Yep. It looks like it's infected with viruses."
+  , nyxVoice ts fs "Yep.        \nIt looks like it's infected with viruses."
 
   , customerVoice ts fs "A virus?! Will I get sick?"
 
@@ -83,12 +87,10 @@ introScript MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs, MySDL.music 
 
   , customerVoice ts fs "You too."
 
-  , nyxInnerVoice fs "..."
 
   , StopMusic
-  , Wait noAction 60
+  , Wait noAction 100
 
-  , customerVoice ts fs "..."
   , LoadTextBox noAction $
     TB.make TB.Top 15 "*Click*" Nothing (M.lookup "unispace" fs)
   , customerVoice ts fs "..."
@@ -97,14 +99,14 @@ introScript MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs, MySDL.music 
   , customerVoice ts fs "It is done."
   , customerVoice ts fs "Now all we can do is wait and see if she can actually do it..."
 
-  , Wait noAction 60
+  , Wait noAction 100
   , nyxVoice ts fs "Alright."
   , nyxVoice ts fs "Let the fixing begin!"
 
 
   , Wait noAction 60
 
-  , Wait act{ command = State.Replace L1.level1 } 60
+  , Wait act{ command = State.Replace $ L1.level1 True } 60
   ]
 
 

@@ -108,7 +108,7 @@ initState sd scrpt rs = do
         rs
         scrpt
         0
-        (mkGameState sd)
+        (Script.restart sd)
         False
         False
         False

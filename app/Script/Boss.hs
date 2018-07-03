@@ -15,11 +15,12 @@ import qualified TextBox as TB
 import qualified Data.Map as M
 
 
-boss :: State.State
-boss =
+boss :: Bool -> Int -> State.State
+boss playMusic tryNum =
   GS.mkGameState $ Script
     wantedAssets
-    lScript
+    (lScript playMusic tryNum)
+    (boss False $ tryNum + 1)
 
 
 wantedAssets :: [(String, MySDL.ResourceType FilePath)]
@@ -28,19 +29,82 @@ wantedAssets =
   ++ SSE.wantedAssets
   ++ TB.wantedAssets
   ++ [ ("saito2", MySDL.Texture "saito2.png")
+     , ("saito", MySDL.Texture "saito.png")
+     , ("battle", MySDL.Music "battle.ogg")
      , ("music-end", MySDL.Music "shushushu.ogg")
      , ("nyx-avatar", MySDL.Texture "nyx-avatar.png")
      ]
 
 
-lScript :: MySDL.Resources -> Script
-lScript MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs, MySDL.music = _ms } =
+lScript :: Bool -> Int -> MySDL.Resources -> Script
+lScript playMusic tryNum MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs, MySDL.music = ms } =
   
   [ goToLoc $ Point 380 800
-  , LoadTextBox act{ stopTheWorld = True } $
-    TB.make TB.Top 5 "It's not over yet!" (M.lookup "saito" ts) (M.lookup "unispace" fs)
   ] ++
-
+  [ PlayMusic ("battle", M.lookup "battle" ms)
+  | playMusic
+  ] ++
+  ( if
+      | tryNum <= 0 ->
+        [ LoadTextBox act{ stopTheWorld = True } $
+          TB.make TB.Bottom 7
+          "Phew..."
+          (M.lookup "nyx-avatar" ts) (M.lookup "unispace" fs)
+        , Wait noAction 60
+        , LoadTextBox act{ stopTheWorld = True } $
+          TB.make TB.Top 3
+          "Not bad Nyx!        \nBut did you really think it'll be that easy?"
+          (M.lookup "saito" ts) (M.lookup "unispace" fs)
+        , LoadTextBox act{ stopTheWorld = True } $
+          TB.make TB.Bottom 5
+          "Who are you...?          \nHow do you know my name?"
+          (M.lookup "nyx-avatar" ts) (M.lookup "unispace" fs)
+        , LoadTextBox act{ stopTheWorld = True } $
+          TB.make TB.Top 3
+          "I think you have bigger things to worry about right now!       \nHere I come!"
+          (M.lookup "saito" ts) (M.lookup "unispace" fs)
+        , LoadTextBox act{ stopTheWorld = True } $
+          TB.make TB.Bottom 2
+          "!!!"
+          (M.lookup "nyx-avatar" ts) (M.lookup "unispace" fs)
+        ]
+      | tryNum < 4 ->
+        [ LoadTextBox act{ stopTheWorld = True } $
+          TB.make TB.Top 4
+          "Did you really think you can beat me?"
+          (M.lookup "saito" ts) (M.lookup "unispace" fs)
+        ]
+      | tryNum < 7 ->
+        [ LoadTextBox act{ stopTheWorld = True } $
+          TB.make TB.Top 4
+          "Didn't you have enough yet?"
+          (M.lookup "saito" ts) (M.lookup "unispace" fs)
+        ]
+      | tryNum < 10 ->
+        [ LoadTextBox act{ stopTheWorld = True } $
+          TB.make TB.Top 5
+          "That persistence... Admirable..."
+          (M.lookup "saito" ts) (M.lookup "unispace" fs)
+        ]
+      | tryNum < 15 ->
+        [ LoadTextBox act{ stopTheWorld = True } $
+          TB.make TB.Top 4
+          "Or maybe you just don't know when to give up..."
+          (M.lookup "saito" ts) (M.lookup "unispace" fs)
+        ]
+      | tryNum < 25 ->
+        [ LoadTextBox act{ stopTheWorld = True } $
+          TB.make TB.Top 6
+          "You are never going to beat me."
+          (M.lookup "saito" ts) (M.lookup "unispace" fs)
+        ]
+      | otherwise ->
+        [ LoadTextBox act{ stopTheWorld = True } $
+          TB.make TB.Top 9
+          "..."
+          (M.lookup "saito" ts) (M.lookup "unispace" fs)
+        ]
+  ) ++
   -- Boss
   [ Spawn $ sequence [Fast.make (Point 350 (-100)) ts]
   , WaitUntil noAction (const $ null)
@@ -54,7 +118,7 @@ lScript MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs, MySDL.music = _m
   , LoadTextBox act{ stopTheWorld = True } $
     TB.make TB.Top 15 "I'll be back!!!" (M.lookup "saito" ts) (M.lookup "unispace" fs)
   , Wait noAction 400
-  , PlayMusic ("music-end", M.lookup "music-end" _ms)
+  , PlayMusic ("music-end", M.lookup "music-end" ms)
   ] ++
   cycle
     (concat $ replicate 5

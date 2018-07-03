@@ -74,9 +74,9 @@ initState rs = do
 
       btns <- sequence $ zipWith (flip ($)) [0..] $
         [ makeBtn "Intro" Intro.intro
-        , makeBtn "Level1" Level1.level1
-        , makeBtn "Level2" Level2.level2
-        , makeBtn "Boss" Boss.boss
+        , makeBtn "Level1" $ Level1.level1 True
+        , makeBtn "Level2" $ Level2.level2 True
+        , makeBtn "Boss" $ Boss.boss True 0
 
         , \n -> (, pure $ State.Done)
           <$> makeBtn' n "Back"

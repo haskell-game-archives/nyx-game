@@ -31,6 +31,7 @@ data ScriptData
   = Script
   { assets :: [(String, MySDL.ResourceType FilePath)]
   , script :: MySDL.Resources -> Script
+  , restart :: State.State
   }
 
 type Script = [Command]

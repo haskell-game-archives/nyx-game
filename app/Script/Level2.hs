@@ -16,11 +16,12 @@ import qualified TextBox as TB
 import qualified Data.Map as M
 
 
-level2 :: State.State
-level2 =
+level2 :: Bool -> State.State
+level2 playMusic =
   GS.mkGameState $ Script
     wantedAssets
-    lScript
+    (lScript playMusic)
+    (level2 False)
 
 
 wantedAssets :: [(String, MySDL.ResourceType FilePath)]
@@ -31,17 +32,21 @@ wantedAssets =
   ++ TB.wantedAssets
   ++ [ ("saito",  MySDL.Texture "saito.png")
      , ("saito2", MySDL.Texture "saito2.png")
-     , ("music", MySDL.Music "battle.ogg")
+     , ("battle", MySDL.Music "battle.ogg")
      , ("nyx-avatar", MySDL.Texture "nyx-avatar.png")
      ]
 
 
-lScript :: MySDL.Resources -> Script
-lScript MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs, MySDL.music = _ms } =
+lScript :: Bool -> MySDL.Resources -> Script
+lScript playMusic MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs, MySDL.music = ms } =
   
   [ goToLoc $ Point 380 800
-  , LoadTextBox act{ stopTheWorld = True } $
-    TB.make TB.Top 5 "Not bad!" (M.lookup "saito" ts) (M.lookup "unispace" fs)
+  ] ++
+  [ PlayMusic ("battle", M.lookup "battle" ms)
+  | playMusic
+  ] ++
+  [ LoadTextBox act{ stopTheWorld = True } $
+    TB.make TB.Bottom 4 "This is harder than I expected..." (M.lookup "nyx-avatar" ts) (M.lookup "unispace" fs)
   ] ++
 
   -- Second wave
@@ -82,7 +87,7 @@ lScript MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs, MySDL.music = _m
   [ WaitUntil noAction (const $ null)
   , Wait noAction 200
   , Wait act{ stopTheWorld = True } 30
-  , Wait act{ command = State.Replace Boss.boss } 60
+  , Wait act{ command = State.Replace $ Boss.boss False 0 } 60
   ]
 
 spawnTwoCDEs dir1 dir2 ts =
