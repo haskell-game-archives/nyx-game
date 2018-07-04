@@ -50,7 +50,7 @@ lScript playMusic tryNum MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs,
           TB.make TB.Bottom 7
           "Phew..."
           (M.lookup "nyx-avatar" ts) (M.lookup "unispace" fs)
-        , Wait noAction 60
+        , Wait act { stopTheWorld = True } 120
         , LoadTextBox act{ stopTheWorld = True } $
           TB.make TB.Top 3
           "Not bad Nyx!        \nBut did you really think it'll be that easy?"
@@ -110,14 +110,52 @@ lScript playMusic tryNum MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs,
   , WaitUntil noAction (const $ null)
   , Shake
 
-  , Wait noAction 170
+  , Wait act{ stopTheWorld = False } 100
+  , StopMusic
+
+  , Wait act{ stopTheWorld = False } 150
 
   -- End
   , LoadTextBox act{ stopTheWorld = True } $
-    TB.make TB.Top 5 "orz" (M.lookup "saito" ts) (M.lookup "unispace" fs)
+    TB.make TB.Top 8
+    "It's not over Nyx!"
+    Nothing (M.lookup "unispace" fs)
+
   , LoadTextBox act{ stopTheWorld = True } $
-    TB.make TB.Top 15 "I'll be back!!!" (M.lookup "saito" ts) (M.lookup "unispace" fs)
-  , Wait noAction 400
+    TB.make TB.Top 9
+    "This is just the beginning!!"
+    Nothing (M.lookup "unispace" fs)
+
+  , LoadTextBox act{ stopTheWorld = True } $
+    TB.make TB.Top 15
+    "J u S t . Y o U . W a I t . . ."
+    Nothing (M.lookup "unispace" fs)
+
+  , Wait act{ stopTheWorld = True } 150
+
+  , LoadTextBox act{ stopTheWorld = True } $
+    TB.make TB.Bottom 4
+    "What was that thing..?"
+    (M.lookup "nyx-avatar" ts) (M.lookup "unispace" fs)
+
+  , LoadTextBox act{ stopTheWorld = True } $
+    TB.make TB.Bottom 4
+    "Why did she know my name..?"
+    (M.lookup "nyx-avatar" ts) (M.lookup "unispace" fs)
+
+  , Wait act{ stopTheWorld = True } 60
+
+  , LoadTextBox act{ stopTheWorld = True } $
+    TB.make TB.Bottom 4
+    "I did not know that at the time,"
+    Nothing (M.lookup "unispace" fs)
+
+  , LoadTextBox act{ stopTheWorld = True } $
+    TB.make TB.Bottom 4
+    "But my fight was far from over..."
+    Nothing (M.lookup "unispace" fs)
+
+
   , PlayMusic ("music-end", M.lookup "music-end" ms)
   ] ++
   cycle

@@ -65,7 +65,7 @@ defKeyMap = map swap
   , (SDL.ScancodeQ, KeyQuit)
   , (SDL.ScancodeZ, KeyA)
   , (SDL.ScancodeX, KeyB)
-  , (SDL.ScancodeC, KeyC)
+  , (SDL.ScancodeR, KeyC)
   , (SDL.ScancodeV, KeyD)
   , (SDL.ScancodeM, KeyM)
   , (SDL.ScancodeP, KeyP)
