@@ -86,8 +86,9 @@ lScript playMusic MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs, MySDL.
   -- Second wave done
   [ WaitUntil noAction (const $ null)
   , Wait noAction 200
+  , StopMusic
   , Wait act{ stopTheWorld = True } 30
-  , Wait act{ command = State.Replace $ Boss.boss False 0 } 60
+  , Wait act{ command = State.Replace $ Boss.boss True 0 } 60
   ]
 
 spawnTwoCDEs dir1 dir2 ts =

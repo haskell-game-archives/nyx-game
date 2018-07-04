@@ -1,6 +1,8 @@
 module Script where
 
+import Data.Word (Word8)
 import Data.Maybe
+import SDL.Vect (V4(..))
 import qualified SDL
 import qualified SDL.Mixer as Mix
 import qualified Play.Engine.MySDL.MySDL as MySDL
@@ -26,6 +28,7 @@ data Command
   | PlayMusic' BS.ByteString
   | StopMusic
   | Shake
+  | FadeOut Word8
 
 data ScriptData
   = Script
@@ -105,6 +108,10 @@ update input mcPos enemies = \case
   Shake : rest ->
     pure (noAction { shake = True }, rest)
 
+  FadeOut n : rest -> case n of
+    255 -> pure (noAction, rest)
+    _ -> pure (noAction, FadeOut (n + 1) : rest)
+
 goToLoc :: IPoint -> Command
 goToLoc p =
   WaitUntil
@@ -115,16 +122,25 @@ goToLoc p =
     )
 
 render :: SDL.Renderer -> Camera -> Script -> IO ()
-render renderer _ =
+render renderer cam =
   maybe (pure ()) f . listToMaybe
   where
     f = \case
       WaitTextBox _ tb ->
         TB.render renderer tb
-      PlayMusic' m -> do
+
+      PlayMusic' m ->
         Mix.playMusic Mix.Forever =<< Mix.decode m
+
       StopMusic ->
         void $ Mix.fadeOutMusic (1000 * 2) -- milliseconds
+
+      FadeOut n -> do
+        let
+          rect = toRect (cam $ Point 0 0) (Point 800 1000)
+        SDL.rendererDrawColor renderer SDL.$= V4 0 0 0 n
+        SDL.fillRect renderer (Just rect)
+
       _ -> pure ()
 
 getNewText :: [MySDL.Response] -> Maybe MySDL.Response

@@ -13,6 +13,7 @@ import qualified Play.Engine.State as State
 import qualified GameState as GS
 import qualified TextBox as TB
 import qualified Data.Map as M
+import qualified Script.End as End
 
 
 boss :: Bool -> Int -> State.State
@@ -31,7 +32,6 @@ wantedAssets =
   ++ [ ("saito2", MySDL.Texture "saito2.png")
      , ("saito", MySDL.Texture "saito.png")
      , ("battle", MySDL.Music "battle.ogg")
-     , ("music-end", MySDL.Music "shushushu.ogg")
      , ("nyx-avatar", MySDL.Texture "nyx-avatar.png")
      ]
 
@@ -40,9 +40,6 @@ lScript :: Bool -> Int -> MySDL.Resources -> Script
 lScript playMusic tryNum MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs, MySDL.music = ms } =
   
   [ goToLoc $ Point 380 800
-  ] ++
-  [ PlayMusic ("battle", M.lookup "battle" ms)
-  | playMusic
   ] ++
   ( if
       | tryNum <= 0 ->
@@ -53,15 +50,23 @@ lScript playMusic tryNum MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs,
         , Wait act { stopTheWorld = True } 120
         , LoadTextBox act{ stopTheWorld = True } $
           TB.make TB.Top 3
-          "Not bad Nyx!        \nBut did you really think it'll be that easy?"
+          "Not bad Nyx!"
+          (M.lookup "saito" ts) (M.lookup "unispace" fs)
+        , LoadTextBox act{ stopTheWorld = True } $
+          TB.make TB.Top 3
+          "But did you really think it'll be that easy?"
           (M.lookup "saito" ts) (M.lookup "unispace" fs)
         , LoadTextBox act{ stopTheWorld = True } $
           TB.make TB.Bottom 5
-          "Who are you...?          \nHow do you know my name?"
+          "Who are you...?\nHow do you know my name?"
           (M.lookup "nyx-avatar" ts) (M.lookup "unispace" fs)
         , LoadTextBox act{ stopTheWorld = True } $
           TB.make TB.Top 3
-          "I think you have bigger things to worry about right now!       \nHere I come!"
+          "I think you have bigger things to worry about right now!"
+          (M.lookup "saito" ts) (M.lookup "unispace" fs)
+        , LoadTextBox act{ stopTheWorld = True } $
+          TB.make TB.Top 4
+          "Here I come!"
           (M.lookup "saito" ts) (M.lookup "unispace" fs)
         , LoadTextBox act{ stopTheWorld = True } $
           TB.make TB.Bottom 2
@@ -105,6 +110,9 @@ lScript playMusic tryNum MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs,
           (M.lookup "saito" ts) (M.lookup "unispace" fs)
         ]
   ) ++
+  [ PlayMusic ("battle", M.lookup "battle" ms)
+  | playMusic
+  ] ++
   -- Boss
   [ Spawn $ sequence [Fast.make (Point 350 (-100)) ts]
   , WaitUntil noAction (const $ null)
@@ -155,19 +163,8 @@ lScript playMusic tryNum MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs,
     "But my fight was far from over..."
     Nothing (M.lookup "unispace" fs)
 
+  , FadeOut 0
 
-  , PlayMusic ("music-end", M.lookup "music-end" ms)
-  ] ++
-  cycle
-    (concat $ replicate 5
-      [ LoadTextBox act{ stopTheWorld = True } $
-        TB.make TB.Top 3 "Thanks for playing!" (M.lookup "saito" ts) (M.lookup "unispace" fs)
-      , LoadTextBox act{ stopTheWorld = True } $
-        TB.make TB.Bottom 3 "Thanks for playing!" (M.lookup "nyx-avatar" ts) (M.lookup "unispace" fs)
-      ] ++ pure
-      [ LoadTextBox act{ stopTheWorld = True } $
-        TB.make TB.Top 5 "Thanks for playing!" (M.lookup "chikua" ts) (M.lookup "unispace" fs)
-      , LoadTextBox act{ stopTheWorld = True } $
-        TB.make TB.Bottom 3 "Thanks for playing!" (M.lookup "nyx-avatar" ts) (M.lookup "unispace" fs)
-      ]
-    )
+  , Wait act{ command = State.Replace $ End.end True } 60
+  ]
+
