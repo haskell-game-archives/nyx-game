@@ -6,10 +6,9 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module StartScreen where
+module KeyScreen where
 
 import Data.Maybe (fromJust)
-import SDL.Vect (V4(..))
 import qualified SDL
 import qualified Play.Engine.MySDL.MySDL as MySDL
 
@@ -29,9 +28,6 @@ import qualified Play.Engine.State as State
 import qualified Play.Engine.Load as Load
 import qualified Control.Monad.State as SM
 
-import qualified Script.Introduction as Intro
-import qualified PickStage as Pick
-import qualified KeyScreen as Keys
 import qualified Button as Btn
 
 
@@ -39,49 +35,40 @@ data State
   = State
   { _bg :: Spr.Sprite
   , _buttons :: Z.ListZipper (Btn.Button, Result State.Command)
-  , _cheat :: !Int
   }
 
 makeFieldsNoPrefix ''State
 
 wantedAssets :: [(String, MySDL.ResourceType FilePath)]
 wantedAssets =
-  [ ("battle-bg", MySDL.Texture "background.png")
-  , ("vnbg", MySDL.Texture "VNBG.png")
+  [ ("keys", MySDL.Texture "keys.png")
   ] ++ Btn.wantedAssets
 
 make :: State.State
-make = Load.mkState 0 wantedAssets (mkState 5)
+make = Load.mkState 0 wantedAssets mkState
 
-mkState :: Int -> MySDL.Resources -> Result State.State
-mkState cheat_ rs = do
-  state <- initState cheat_ rs
+mkState :: MySDL.Resources -> Result State.State
+mkState rs = do
+  state <- initState rs
   pure $ State.mkState
     state
     update
     render
 
-initState :: Int -> MySDL.Resources -> Result State
-initState cheat_ rs = do
-  case M.lookup "vnbg" (MySDL.textures rs) of
+initState :: MySDL.Resources -> Result State
+initState rs = do
+  case M.lookup "keys" (MySDL.textures rs) of
     Nothing ->
-      throwError ["Texture not found: vnbg"]
+      throwError ["Texture not found: keys"]
     Just bgt -> do
       let
         makeBtn' n =
-          Btn.make (Point 320 (600 + n * 60)) (Point 180 50) rs
-
-        makeBtn name state n =
-          (, pure $ State.Push state)
-            <$> makeBtn' n name
+          Btn.make (Point 320 (720 + n * 60)) (Point 180 50) rs
 
       btns <- sequence $ zipWith (flip ($)) [0..] $
-        [ makeBtn "Start" Intro.intro ]
-        ++ [ makeBtn "Pick Stage" Pick.make | cheat_ <= 0 ]
-        ++ [ makeBtn "Keys" Keys.make ]
-        ++ [ \n -> (, throwError [])
-             <$> makeBtn' n "Exit"
-           ]
+        [ \n -> (, pure $ State.Done)
+          <$> makeBtn' n "Back"
+        ]
 
       pure $ State
         { _bg =
@@ -92,14 +79,13 @@ initState cheat_ rs = do
             , mkAction = "normal"
             , mkTexture = bgt
             , mkSize = Point 800 1000
-            , mkMaxPos = 8
-            , mkSpeed = 8
+            , mkMaxPos = 1
+            , mkSpeed = 1
             }
         , _buttons = Z.ListZipper
           []
           (head btns)
           (tail btns)
-        , _cheat = cheat_
         }
 
 update :: Input -> State -> Result (State.Command, State)
@@ -117,24 +103,19 @@ update input state = do
           state ^. buttons
 
   let ((check, _), cmd') = Z.get btns
-  cmd <- bool (pure State.None) cmd' check
+  cmd <- bool (pure State.None) cmd' (check || keyClicked KeyQuit input)
   pure
-    ( if state ^. cheat == 0
-        then State.Replace $ Load.mkState 0 wantedAssets (mkState $ -1)
-        else cmd
+    ( cmd
     , state
       & set buttons (fmap (first snd) btns)
-      & over cheat (if keyClicked KeyC input then (\c -> c - 1) else id)
+      & over bg (Spr.update Nothing False)
     )
 
 render :: SDL.Renderer -> State -> IO ()
 render renderer state = do
-  let n = fromIntegral $ max (-1) (state ^. cheat) * 8
-  void $ MySDL.setBGColor (V4 (10 + n) 0 20 255) renderer
   Spr.render renderer id (Point 0 0) (state ^. bg . size) (state ^. bg)
-  shade renderer id (160 + n)
+  shade renderer id 30
   void $ Z.diffMapM
     (Btn.render renderer False)
     (Btn.render renderer True)
     (fmap fst $ state ^. buttons)
-
