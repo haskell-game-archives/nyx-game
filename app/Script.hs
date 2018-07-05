@@ -2,7 +2,6 @@ module Script where
 
 import Data.Word (Word8)
 import Data.Maybe
-import SDL.Vect (V4(..))
 import qualified SDL
 import qualified SDL.Mixer as Mix
 import qualified Play.Engine.MySDL.MySDL as MySDL
@@ -18,6 +17,7 @@ import qualified Play.Engine.Input as I
 import qualified Play.Engine.State as State
 import qualified Play.Engine.Sprite as Spr
 
+
 data Command
   = Wait !Actions Int
   | WaitUntil !Actions (Maybe IPoint -> [Enemy] -> Bool)
@@ -29,6 +29,7 @@ data Command
   | StopMusic
   | Shake
   | FadeOut Word8
+  | FadeIn Word8
 
 data ScriptData
   = Script
@@ -108,9 +109,26 @@ update input mcPos enemies = \case
   Shake : rest ->
     pure (noAction { shake = True }, rest)
 
-  FadeOut n : rest -> case n of
-    255 -> pure (noAction, rest)
-    _ -> pure (noAction, FadeOut (n + 1) : rest)
+  FadeOut n : rest ->
+    let
+      jump = 2
+    in case n of
+      255 ->
+        pure (noAction, rest)
+      _ | n < jump ->
+        pure (noAction, FadeOut 255 : rest)
+      _ ->
+        pure (noAction, FadeOut (n + jump) : rest)
+
+  FadeIn n : rest ->
+    let
+      jump = 2
+    in case n of
+      0 -> pure (noAction, rest)
+      _ | n < jump ->
+        pure (noAction, FadeIn 0 : rest)
+      _ ->
+        pure (noAction, FadeIn (n - jump) : rest)
 
 goToLoc :: IPoint -> Command
 goToLoc p =
@@ -135,11 +153,8 @@ render renderer cam =
       StopMusic ->
         void $ Mix.fadeOutMusic (1000 * 2) -- milliseconds
 
-      FadeOut n -> do
-        let
-          rect = toRect (cam $ Point 0 0) (Point 800 1000)
-        SDL.rendererDrawColor renderer SDL.$= V4 0 0 0 n
-        SDL.fillRect renderer (Just rect)
+      FadeOut n -> shade renderer cam n
+      FadeIn  n -> shade renderer cam n
 
       _ -> pure ()
 

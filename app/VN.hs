@@ -41,6 +41,7 @@ data State
   , _pauseChanged :: !Bool
   , _isMute :: !Bool
   , _hudFont :: SDLF.Font
+  , _exit :: !Bool
   }
 
 makeFieldsNoPrefix ''State
@@ -89,6 +90,7 @@ initState scrpt rs = do
         , _pauseChanged = False
         , _isMute = False
         , _hudFont = font
+        , _exit = False
         }
 
 update :: Input -> State -> Result (State.Command, State)
@@ -132,6 +134,8 @@ update input st = do
     | state ^. isPause -> do
       pure (State.None, state)
     | keyReleased KeyQuit input -> do
+      pure (State.None, set exit True state)
+    | state ^. exit -> do
       pure (State.Done, state)
     | otherwise ->
       pure (Script.command acts, newState)
@@ -161,3 +165,5 @@ render renderer state = do
       else
         Mix.resumeMusic
 
+  when (state ^. exit) $
+    Mix.pauseMusic

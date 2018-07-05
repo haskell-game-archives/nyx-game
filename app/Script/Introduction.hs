@@ -34,7 +34,8 @@ wantedAssets =
 introScript :: MySDL.Resources -> Script
 introScript MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs, MySDL.music = ms } =
 
-  [ PlayMusic ("music", M.lookup "music" ms)
+  [ FadeIn 200
+  , PlayMusic ("music", M.lookup "music" ms)
 
   , let
       sprargs rint =

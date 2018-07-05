@@ -8,6 +8,7 @@
 -- a utility module
 module Play.Engine.Utils where
 
+import Data.Word (Word8)
 import SDL.Vect (V4(..))
 import qualified SDL
 import qualified SDL.Font as SDLF
@@ -246,6 +247,14 @@ renderText renderer font loc txt =
           (Point (fromIntegral $ SDL.textureWidth ti) (fromIntegral $ SDL.textureHeight ti))
         )
       SDL.destroyTexture texture'
+
+shade :: SDL.Renderer -> Camera -> Word8 -> IO ()
+shade renderer cam n = do
+  let
+    rect = toRect (cam $ Point 0 0) (Point 800 1000)
+  SDL.rendererDrawColor renderer SDL.$= V4 0 0 0 n
+  SDL.fillRect renderer (Just rect)
+
 
 -----------
 -- Stack --

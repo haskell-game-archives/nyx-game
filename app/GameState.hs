@@ -57,6 +57,7 @@ data State
   , _pauseChanged :: !Bool
   , _isMute :: !Bool
   , _hudFont :: SDLF.Font
+  , _exit :: !Bool
   }
 
 makeFieldsNoPrefix ''State
@@ -113,6 +114,7 @@ initState sd scrpt rs = do
         False
         False
         font
+        False
 
 initEnemyTimer :: Int
 initEnemyTimer = 60
@@ -198,6 +200,8 @@ update input state = do
     | state ^. isPause -> do
       pure (State.None, state)
     | keyReleased KeyQuit input -> do
+      pure (State.None, set exit True state)
+    | state ^. exit -> do
       pure (State.Done, state)
     | otherwise ->
       pure (Script.command acts, newState)
@@ -248,6 +252,8 @@ render renderer state = do
       else
         Mix.resumeMusic
 
+  when (state ^. exit) $
+    Mix.pauseMusic
 
 dirToInput :: IPoint -> Input
 dirToInput dir =

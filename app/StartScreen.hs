@@ -8,6 +8,7 @@
 
 module StartScreen where
 
+import Data.Maybe (fromJust)
 import SDL.Vect (V4(..))
 import qualified SDL
 import qualified Play.Engine.MySDL.MySDL as MySDL
@@ -22,6 +23,7 @@ import Control.Lens
 import Data.Bifunctor
 import Data.Bool
 import qualified Data.Map as M
+import qualified Play.Engine.Sprite as Spr
 import qualified Play.Engine.ListZipper as Z
 import qualified Play.Engine.State as State
 import qualified Play.Engine.Load as Load
@@ -34,7 +36,7 @@ import qualified Button as Btn
 
 data State
   = State
-  { _background :: SDL.Texture
+  { _bg :: Spr.Sprite
   , _buttons :: Z.ListZipper (Btn.Button, Result State.Command)
   , _cheat :: !Int
   }
@@ -43,7 +45,8 @@ makeFieldsNoPrefix ''State
 
 wantedAssets :: [(String, MySDL.ResourceType FilePath)]
 wantedAssets =
-  [ ("bg", MySDL.Texture "background.png")
+  [ ("battle-bg", MySDL.Texture "background.png")
+  , ("vnbg", MySDL.Texture "VNBG.png")
   ] ++ Btn.wantedAssets
 
 make :: State.State
@@ -59,9 +62,9 @@ mkState cheat_ rs = do
 
 initState :: Int -> MySDL.Resources -> Result State
 initState cheat_ rs = do
-  case M.lookup "bg" (MySDL.textures rs) of
+  case M.lookup "vnbg" (MySDL.textures rs) of
     Nothing ->
-      throwError ["Texture not found: bg"]
+      throwError ["Texture not found: vnbg"]
     Just bgt -> do
       let
         makeBtn' n =
@@ -79,7 +82,17 @@ initState cheat_ rs = do
            ]
 
       pure $ State
-        { _background = bgt
+        { _bg =
+          fromJust
+            $ Spr.make
+            $ Spr.MakeArgs
+            { mkActionmap = ["normal"]
+            , mkAction = "normal"
+            , mkTexture = bgt
+            , mkSize = Point 800 1000
+            , mkMaxPos = 8
+            , mkSpeed = 8
+            }
         , _buttons = Z.ListZipper
           []
           (head btns)
@@ -114,8 +127,10 @@ update input state = do
 
 render :: SDL.Renderer -> State -> IO ()
 render renderer state = do
-  let n = fromIntegral $ max (-1) (state ^. cheat) * 4
+  let n = fromIntegral $ max (-1) (state ^. cheat) * 8
   void $ MySDL.setBGColor (V4 (10 + n) 0 20 255) renderer
+  Spr.render renderer id (Point 0 0) (state ^. bg . size) (state ^. bg)
+  shade renderer id (160 + n)
   void $ Z.diffMapM
     (Btn.render renderer False)
     (Btn.render renderer True)
