@@ -32,6 +32,7 @@ import qualified Script.Introduction as Intro
 import qualified Script.Level1 as Level1
 import qualified Script.Level2 as Level2
 import qualified Script.Boss as Boss
+import qualified Script.End as End
 import qualified Button as Btn
 
 
@@ -78,6 +79,7 @@ initState rs = do
         , makeBtn "Level1" $ Level1.level1 True
         , makeBtn "Level2" $ Level2.level2 True
         , makeBtn "Boss" $ Boss.boss True 0
+        , makeBtn "Credits" $ End.end True
 
         , \n -> (, pure $ State.Done)
           <$> makeBtn' n "Back"

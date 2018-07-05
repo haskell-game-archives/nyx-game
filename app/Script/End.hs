@@ -4,16 +4,18 @@ module Script.End where
 
 import qualified Play.Engine.MySDL.MySDL as MySDL
 
+import Data.Maybe (fromJust)
 import Script
+import Play.Engine.Types
 import qualified Play.Engine.State as State
-import qualified GameState as GS
+import qualified Credits
 import qualified TextBox as TB
 import qualified Data.Map as M
 
 
 end :: Bool -> State.State
 end playMusic =
-  GS.mkGameState $ Script
+  Credits.make 0 $ Script
     wantedAssets
     (lScript playMusic)
     (end False)
@@ -30,20 +32,13 @@ wantedAssets =
 
 
 lScript :: Bool -> MySDL.Resources -> Script
-lScript playMusic MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs, MySDL.music = ms } =
+lScript playMusic MySDL.Resources{ MySDL.fonts = fs, MySDL.music = ms } =
   [ PlayMusic ("music-end", M.lookup "music-end" ms)
   | playMusic
   ] ++
-  cycle
-    (concat $ replicate 5
-      [ LoadTextBox act{ stopTheWorld = True } $
-        TB.make TB.Top 3 "Thanks for playing!" (M.lookup "saito" ts) (M.lookup "unispace" fs)
-      , LoadTextBox act{ stopTheWorld = True } $
-        TB.make TB.Bottom 3 "Thanks for playing!" (M.lookup "nyx-avatar" ts) (M.lookup "unispace" fs)
-      ] ++ pure
-      [ LoadTextBox act{ stopTheWorld = True } $
-        TB.make TB.Top 5 "Thanks for playing!" (M.lookup "chikua" ts) (M.lookup "unispace" fs)
-      , LoadTextBox act{ stopTheWorld = True } $
-        TB.make TB.Bottom 3 "Thanks for playing!" (M.lookup "nyx-avatar" ts) (M.lookup "unispace" fs)
-      ]
-    )
+  [ TextUp 3 (fromJust $ M.lookup "unispace" fs) (Point 280 1000) "ART BY: @trixelbit"
+  , TextUp 2 (fromJust $ M.lookup "unispace" fs) (Point 300 1000) "GAME BY: @_gilmi"
+  , TextUp 2 (fromJust $ M.lookup "unispace" fs) (Point 270 1000) "THANKS FOR PLAYING!"
+  , Wait noAction 60
+  , Wait act{ command = State.Done } 120
+  ]

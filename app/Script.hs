@@ -3,15 +3,18 @@ module Script where
 import Data.Word (Word8)
 import Data.Maybe
 import qualified SDL
+import qualified SDL.Font as SDLF
 import qualified SDL.Mixer as Mix
 import qualified Play.Engine.MySDL.MySDL as MySDL
 import qualified Data.ByteString as BS
+import qualified Data.Text as T
 
 import Enemy
 import qualified TextBox as TB
 import Play.Engine.Settings
 import Play.Engine.Utils
 import Play.Engine.Types
+import Control.Lens
 import Control.Monad.Except
 import qualified Play.Engine.Input as I
 import qualified Play.Engine.State as State
@@ -30,6 +33,7 @@ data Command
   | Shake
   | FadeOut Word8
   | FadeIn Word8
+  | TextUp Word8 SDLF.Font IPoint T.Text
 
 data ScriptData
   = Script
@@ -130,6 +134,16 @@ update input mcPos enemies = \case
       _ ->
         pure (noAction, FadeIn (n - jump) : rest)
 
+  TextUp spd font location txt : rest ->
+    case location ^. y of
+      n | n < -50 ->
+        pure (noAction, rest)
+      n ->
+        pure (noAction, TextUp spd font (set y (n - fromIntegral spd) location) txt : rest)
+
+
+
+
 goToLoc :: IPoint -> Command
 goToLoc p =
   WaitUntil
@@ -155,6 +169,9 @@ render renderer cam =
 
       FadeOut n -> shade renderer cam n
       FadeIn  n -> shade renderer cam n
+
+      TextUp _ font location txt ->
+        renderText renderer font location txt
 
       _ -> pure ()
 

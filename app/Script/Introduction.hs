@@ -17,7 +17,7 @@ import qualified VN
 
 intro :: State.State
 intro =
-  VN.make 1 $ Script
+  VN.make 0 $ Script
     wantedAssets
     introScript
     intro
