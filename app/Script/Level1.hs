@@ -47,9 +47,7 @@ lScript playMusic MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs, MySDL.
   [ PlayMusic ("battle", M.lookup "battle" ms)
   | playMusic
   ] ++
-  [ Wait noAction 60
-
-  , LoadTextBox act{ stopTheWorld = True } $
+  [ LoadTextBox act{ stopTheWorld = True } $
     TB.make TB.Bottom 3 "Here they come." (M.lookup "nyx-avatar" ts) (M.lookup "unispace" fs)
 
   , Wait noAction 60

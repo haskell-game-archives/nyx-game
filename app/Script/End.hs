@@ -40,5 +40,6 @@ lScript playMusic MySDL.Resources{ MySDL.fonts = fs, MySDL.music = ms } =
   , TextUp 2 (fromJust $ M.lookup "unispace" fs) (Point 300 1000) "GAME BY: @_gilmi"
   , TextUp 2 (fromJust $ M.lookup "unispace" fs) (Point 270 1000) "THANKS FOR PLAYING!"
   , Wait noAction 60
+  , StopMusic
   , Wait act{ command = State.Done } 120
   ]
