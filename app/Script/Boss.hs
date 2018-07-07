@@ -3,6 +3,7 @@
 module Script.Boss where
 
 import qualified Play.Engine.MySDL.MySDL as MySDL
+import qualified SDL.Mixer as Mix
 
 import Script
 import Play.Engine.Types
@@ -110,7 +111,7 @@ lScript playMusic tryNum MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs,
           (M.lookup "saito" ts) (M.lookup "unispace" fs)
         ]
   ) ++
-  [ PlayMusic ("battle", M.lookup "battle" ms)
+  [ PlayMusic Mix.Forever ("battle", M.lookup "battle" ms)
   | playMusic
   ] ++
   -- Boss

@@ -27,8 +27,8 @@ data Command
   | Spawn (Result [Enemy])
   | LoadTextBox !Actions (Result TB.TextBox)
   | WaitTextBox !Actions TB.TextBox
-  | PlayMusic (String, Maybe BS.ByteString)
-  | PlayMusic' BS.ByteString
+  | PlayMusic Mix.Times (String, Maybe BS.ByteString)
+  | PlayMusic' Mix.Times BS.ByteString
   | StopMusic
   | Shake
   | FadeOut Word8
@@ -97,14 +97,14 @@ update input mcPos enemies = \case
       Nothing -> pure  (acts, rest)
       Just tb' -> pure (acts, WaitTextBox acts tb' : rest)
 
-  PlayMusic (name, m) : rest -> do
+  PlayMusic times (name, m) : rest -> do
     case m of
       Nothing ->
         throwError ["Audio asset not loaded: " ++ name]
       Just msc ->
-        pure (noAction, PlayMusic' msc : rest)
+        pure (noAction, PlayMusic' times msc : rest)
 
-  PlayMusic' _ : rest ->
+  PlayMusic' _ _ : rest ->
     pure (noAction, rest) -- `render` takes care of playing the music
 
   StopMusic : rest ->
@@ -161,8 +161,8 @@ render renderer cam =
       WaitTextBox _ tb ->
         TB.render renderer tb
 
-      PlayMusic' m ->
-        Mix.playMusic Mix.Forever =<< Mix.decode m
+      PlayMusic' times m ->
+        Mix.playMusic times =<< Mix.decode m
 
       StopMusic ->
         void $ Mix.fadeOutMusic (1000 * 2) -- milliseconds

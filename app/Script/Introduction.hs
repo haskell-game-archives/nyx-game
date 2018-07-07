@@ -3,6 +3,7 @@
 module Script.Introduction where
 
 import qualified Play.Engine.MySDL.MySDL as MySDL
+import qualified SDL.Mixer as Mix
 
 import Script
 import Play.Engine.Types
@@ -25,7 +26,7 @@ intro =
 wantedAssets :: [(String, MySDL.ResourceType FilePath)]
 wantedAssets =
   TB.wantedAssets
-  ++ [ ("music", MySDL.Music "shushushu.ogg")
+  ++ [ ("store", MySDL.Music "store.ogg")
      , ("nyx-avatar", MySDL.Texture "nyx-avatar.png")
      , ("customer-avatar", MySDL.Texture "customer.png")
      ]
@@ -35,7 +36,7 @@ introScript :: MySDL.Resources -> Script
 introScript MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs, MySDL.music = ms } =
 
   [ FadeIn 200
-  , PlayMusic ("music", M.lookup "music" ms)
+  , PlayMusic Mix.Forever ("store", M.lookup "store" ms)
 
   , let
       sprargs rint =

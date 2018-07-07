@@ -3,6 +3,7 @@
 module Script.Level1 where
 
 import qualified Play.Engine.MySDL.MySDL as MySDL
+import qualified SDL.Mixer as Mix
 
 import Script
 import Play.Engine.Types
@@ -44,7 +45,7 @@ lScript playMusic MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs, MySDL.
   -- [ Spawn $ sequence [Fast.make (Point 350 (-100)) ts]
   -- , WaitUntil noAction (const $ null)
 
-  [ PlayMusic ("battle", M.lookup "battle" ms)
+  [ PlayMusic Mix.Forever ("battle", M.lookup "battle" ms)
   | playMusic
   ] ++
   [ LoadTextBox act{ stopTheWorld = True } $

@@ -1,5 +1,4 @@
 {-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE RankNTypes #-}
 
 module Play.Engine.State where
 
@@ -49,7 +48,6 @@ sample = mkState
   ()
   (\_ () -> pure (None, ()))
   (const pure)
-  
 
 
 -----------------

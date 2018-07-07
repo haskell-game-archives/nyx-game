@@ -3,6 +3,7 @@
 module Script.End where
 
 import qualified Play.Engine.MySDL.MySDL as MySDL
+import qualified SDL.Mixer as Mix
 
 import Data.Maybe (fromJust)
 import Script
@@ -26,14 +27,14 @@ wantedAssets =
   TB.wantedAssets
   ++ [ ("saito", MySDL.Texture "saito.png")
      , ("chikua", MySDL.Texture "chikua.png")
-     , ("music-end", MySDL.Music "shushushu.ogg")
+     , ("music-end", MySDL.Music "end.ogg")
      , ("nyx-avatar", MySDL.Texture "nyx-avatar.png")
      ]
 
 
 lScript :: Bool -> MySDL.Resources -> Script
 lScript playMusic MySDL.Resources{ MySDL.fonts = fs, MySDL.music = ms } =
-  [ PlayMusic ("music-end", M.lookup "music-end" ms)
+  [ PlayMusic Mix.Once ("music-end", M.lookup "music-end" ms)
   | playMusic
   ] ++
   [ TextUp 3 (fromJust $ M.lookup "unispace" fs) (Point 280 1000) "ART BY: @trixelbit"
