@@ -4,6 +4,7 @@
 {-# LANGUAGE DuplicateRecordFields  #-}
 {-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings  #-}
 
 module Enemy.SideToSideSpiral where
 
@@ -22,31 +23,52 @@ import Enemy
 import qualified Attack as A
 import qualified Attack.SpiralAttack as SA
 import qualified Play.Engine.Movement as MV
+import qualified Play.Engine.Sprite as Spr
+import Data.Maybe (fromJust)
 
 
 wantedAssets :: [(String, MySDL.ResourceType FilePath)]
 wantedAssets =
-  [ ("saito2", MySDL.Texture "saito2.png")
-  , ("chikua", MySDL.Texture "chikua.png")
+  [ ("static", MySDL.Texture "static.png")
+  , ("crossdown", MySDL.Texture "crossdown.png")
   ]
 
 make :: IPoint -> M.Map String SDL.Texture -> Result Enemy
 make posi ts = do
-  case (,) <$> M.lookup "saito2" ts <*> M.lookup "chikua" ts of
+  case (,) <$> M.lookup "static" ts <*> M.lookup "crossdown" ts of
     Nothing ->
-      throwError ["Texture not found: saito2 or chikua" ]
-    Just (et, bt) ->
+      throwError ["Texture not found: static or crossdown" ]
+    Just (et, bt) -> do
+      let
+        sz = Point 48 48
       pure . mkEnemy $
         MakeEnemy
           { mkePos = posi
-          , mkeSize = Point 48 48
+          , mkeSize = sz
           , mkeMov = leftRightMovement
           , mkeHealth = 100
           , mkeDirChanger = changeDirection
           , mkeAtk = singleSpiralAttack bt
           , mkeAtkChanger = \_ _ -> Nothing
-          , mkeEnemyTxt = et
           , mkeDeathTime = 0
+          , mkeDeathParts = Point 3 3
+          , mkeSprite =
+            fromJust
+              $ Spr.make
+              $ Spr.MakeArgs
+              { mkActionmap = ["normal"]
+              , mkAction = "normal"
+              , mkTexture = et
+              , mkSize = sz
+              , mkMaxPos = 1
+              , mkSpeed = 1
+              }
+          , mkeHitbox = Hitbox
+            { _alignment = Point 4 4
+            , _size = sz
+              & over x (\n -> n - 8)
+              & over y (\n -> n - 8)
+            }
           }
 
 leftRightMovement :: MV.Movement
@@ -70,7 +92,7 @@ changeDirection wsize enemy
   , enemy ^. direction . y == 1
   = Point 1 0
 
-  | enemy ^. pos . x > 2 * (wsize ^. x `div` 3) - enemy ^. size . x
+  | enemy ^. pos . x > 2 * (wsize ^. x `div` 3) - enemy ^. sprite . size . x
   , enemy ^. direction . y == 0
   = Point (-1) 0
 

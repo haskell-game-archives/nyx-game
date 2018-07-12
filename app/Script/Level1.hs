@@ -31,11 +31,8 @@ wantedAssets =
   ++ St.wantedAssets
   ++ SSE.wantedAssets
   ++ TB.wantedAssets
-  ++ [ ("saito",  MySDL.Texture "saito.png")
-     , ("saito2", MySDL.Texture "saito2.png")
-     , ("battle", MySDL.Music "battle.ogg")
+  ++ [ ("battle", MySDL.Music "battle.ogg")
      , ("nyx-avatar", MySDL.Texture "nyx-avatar.png")
-     , ("customer-avatar", MySDL.Texture "customer.png")
      ]
 
 

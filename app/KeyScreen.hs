@@ -113,7 +113,7 @@ update input state = do
 
 render :: SDL.Renderer -> State -> IO ()
 render renderer state = do
-  Spr.render renderer id (Point 0 0) (state ^. bg . size) (state ^. bg)
+  Spr.render renderer id (Point 0 0) (state ^. bg . size) 255 (state ^. bg)
   shade renderer id 30
   void $ Z.diffMapM
     (Btn.render renderer False)

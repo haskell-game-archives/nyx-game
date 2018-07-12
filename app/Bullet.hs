@@ -58,7 +58,7 @@ mkBullet :: SDL.Texture -> FPoint -> MV.Movement -> Int -> Word8 -> IPoint -> Bu
 mkBullet txt dir mv dmg transp position = Bullet
   { _pos = fmap fromIntegral position `addPoint` Point (-6) (-12)
   , _movement = mv
-  , _size = Point 12 12
+  , _size = Point 15 15
   , _direction = dir
   , _damage = dmg
   , _texture = txt

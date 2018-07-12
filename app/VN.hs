@@ -144,7 +144,7 @@ render :: SDL.Renderer -> State -> IO ()
 render renderer state = do
   cam' <- Point <$> randomRIO (-1, 1) <*> randomRIO (-1, 1) :: IO FPoint
   let cam = addPoint $ fmap (floor . (*) (fromIntegral $ state ^. camera `div` 3)) cam'
-  Spr.render renderer cam (Point 0 0) (state ^. bg . size) (state ^. bg)
+  Spr.render renderer cam (Point 0 0) (state ^. bg . size) 255 (state ^. bg)
 
   when (state ^. isMute) $
     renderText renderer (state ^. hudFont) (Point 40 30) "MUTED"

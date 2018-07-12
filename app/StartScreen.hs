@@ -131,7 +131,7 @@ render :: SDL.Renderer -> State -> IO ()
 render renderer state = do
   let n = fromIntegral $ max (-1) (state ^. cheat) * 8
   void $ MySDL.setBGColor (V4 (10 + n) 0 20 255) renderer
-  Spr.render renderer id (Point 0 0) (state ^. bg . size) (state ^. bg)
+  Spr.render renderer id (Point 0 0) (state ^. bg . size) 255 (state ^. bg)
   shade renderer id (160 + n)
   void $ Z.diffMapM
     (Btn.render renderer False)

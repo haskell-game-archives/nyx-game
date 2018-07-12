@@ -112,7 +112,7 @@ render renderer state = do
   case state ^. bg of
     Nothing -> pure ()
     Just bgSpr ->
-      Spr.render renderer cam (Point 0 0) (bgSpr ^. size) bgSpr
+      Spr.render renderer cam (Point 0 0) (bgSpr ^. size) 255 bgSpr
 
   Script.render renderer cam (state ^. script)
 

@@ -144,7 +144,7 @@ update input state = do
       updateListWith
         M.empty
         (const $ const M.empty)
-        (Bullet.update wSize isTouchingCircleCircle (state ^. enemies))
+        (Bullet.update wSize isTouchingCircleRect (state ^. enemies))
         (state ^. mcBullets)
 
     (enemyBullets', (concat . map snd . M.toList) -> mcHits) =

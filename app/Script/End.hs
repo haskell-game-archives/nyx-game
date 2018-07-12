@@ -25,9 +25,7 @@ end playMusic =
 wantedAssets :: [(String, MySDL.ResourceType FilePath)]
 wantedAssets =
   TB.wantedAssets
-  ++ [ ("saito", MySDL.Texture "saito.png")
-     , ("chikua", MySDL.Texture "chikua.png")
-     , ("music-end", MySDL.Music "end.ogg")
+  ++ [ ("music-end", MySDL.Music "end.ogg")
      , ("nyx-avatar", MySDL.Texture "nyx-avatar.png")
      ]
 

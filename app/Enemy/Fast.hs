@@ -4,6 +4,7 @@
 {-# LANGUAGE DuplicateRecordFields  #-}
 {-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings  #-}
 
 module Enemy.Fast where
 
@@ -22,25 +23,29 @@ import Enemy
 import qualified Attack as A
 import qualified Attack.SpiralAttack as SA
 import qualified Play.Engine.Movement as MV
+import qualified Play.Engine.Sprite as Spr
+import Data.Maybe (fromJust)
 
 
 wantedAssets :: [(String, MySDL.ResourceType FilePath)]
 wantedAssets =
-  [ ("moon", MySDL.Texture "moon2.png")
-  , ("saito2", MySDL.Texture "saito2.png")
+  [ ("bullet", MySDL.Texture "bullet.png")
+  , ("astral", MySDL.Texture "astral.png")
   ]
 
 make :: IPoint -> M.Map String SDL.Texture -> Result Enemy
 make posi ts = do
-  let textName = "moon"
-  case (,) <$> M.lookup textName ts <*> M.lookup "saito2" ts of
+  let textName = "bullet"
+  case (,) <$> M.lookup textName ts <*> M.lookup "astral" ts of
     Nothing ->
-      throwError ["Texture not found: saito2 or " ++ textName]
-    Just (bt, et) ->
+      throwError ["Texture not found: astral or " ++ textName ++ " in " ++ show (M.keys ts)]
+    Just (bt, et) -> do
+      let
+        sz = Point 100 100
       pure . mkEnemy $
         MakeEnemy
           { mkePos = posi
-          , mkeSize = Point 96 96
+          , mkeSize = sz
           , mkeMov = crossMovement (Right ())
           , mkeHealth = 300
           , mkeDirChanger = changeDirection
@@ -51,8 +56,25 @@ make posi ts = do
                 | enemy ^. health < 100 && atkId < 2 -> pure $ attackPattern3 bt
                 | otherwise -> Nothing
 
-          , mkeEnemyTxt = et
-          , mkeDeathTime = 120
+          , mkeSprite =
+            fromJust
+              $ Spr.make
+              $ Spr.MakeArgs
+              { mkActionmap = ["normal"]
+              , mkAction = "normal"
+              , mkTexture = et
+              , mkSize = sz
+              , mkMaxPos = 1
+              , mkSpeed = 1
+              }
+          , mkeHitbox = Hitbox
+            { _alignment = Point 30 6
+            , _size = sz
+              & over x (\n -> n - 60)
+              & over y (\n -> n - 12)
+            }
+          , mkeDeathTime = 150
+          , mkeDeathParts = Point 4 3
           }
 
 crossMovement :: Either () () -> MV.Movement

@@ -4,6 +4,7 @@
 {-# LANGUAGE DuplicateRecordFields  #-}
 {-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings  #-}
 
 module Enemy.Static where
 
@@ -22,32 +23,53 @@ import Enemy
 import qualified Attack as A
 import qualified Attack.SpiralAttack as SA
 import qualified Play.Engine.Movement as MV
+import qualified Play.Engine.Sprite as Spr
+import Data.Maybe (fromJust)
 
 
 wantedAssets :: [(String, MySDL.ResourceType FilePath)]
 wantedAssets =
-  [ ("moon", MySDL.Texture "moon2.png")
+  [ ("bullet", MySDL.Texture "bullet.png")
   , ("static", MySDL.Texture "static.png")
   ]
 
 make :: IPoint -> FPoint -> Int -> M.Map String SDL.Texture -> Result Enemy
 make posi dir targetY ts = do
-  let textName = "moon"
+  let textName = "bullet"
   case (,) <$> M.lookup textName ts <*> M.lookup "static" ts of
     Nothing ->
       throwError ["Texture not found: static or " ++ textName ++ " in:\n" ++ show (M.keys ts)]
-    Just (bt, et) ->
+    Just (bt, et) -> do
+      let
+        sz = Point 48 48
       pure . mkEnemy $
         MakeEnemy
           { mkePos = posi
-          , mkeSize = Point 48 48
+          , mkeSize = sz
           , mkeMov = staticMovement dir
           , mkeHealth = 5
           , mkeDirChanger = changeDirection targetY
           , mkeAtk = sprayAttack bt
           , mkeAtkChanger = \_ _ -> Nothing
-          , mkeEnemyTxt = et
           , mkeDeathTime = 30
+          , mkeDeathParts = Point 3 3
+          , mkeSprite =
+            fromJust
+              $ Spr.make
+              $ Spr.MakeArgs
+              { mkActionmap = ["normal"]
+              , mkAction = "normal"
+              , mkTexture = et
+              , mkSize = sz
+              , mkMaxPos = 1
+              , mkSpeed = 1
+              }
+          , mkeHitbox = Hitbox
+            { _alignment = Point 4 4
+            , _size = sz
+              & over x (\n -> n - 8)
+              & over y (\n -> n - 8)
+            }
           }
 
 staticMovement :: FPoint -> MV.Movement

@@ -7,8 +7,6 @@ import qualified SDL.Mixer as Mix
 
 import Script
 import Play.Engine.Types
-import qualified Enemy.CrossDown as CDE
-import qualified Enemy.SideToSideSpiral as SSE
 import qualified Enemy.Fast as Fast
 import qualified Play.Engine.State as State
 import qualified GameState as GS
@@ -27,11 +25,9 @@ boss playMusic tryNum =
 
 wantedAssets :: [(String, MySDL.ResourceType FilePath)]
 wantedAssets =
-  CDE.wantedAssets
-  ++ SSE.wantedAssets
+  Fast.wantedAssets
   ++ TB.wantedAssets
-  ++ [ ("saito2", MySDL.Texture "saito2.png")
-     , ("saito", MySDL.Texture "saito.png")
+  ++ [ ("astral-avatar", MySDL.Texture "astral-avatar.png")
      , ("battle", MySDL.Music "battle.ogg")
      , ("nyx-avatar", MySDL.Texture "nyx-avatar.png")
      ]
@@ -52,11 +48,11 @@ lScript playMusic tryNum MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs,
         , LoadTextBox act{ stopTheWorld = True } $
           TB.make TB.Top 3
           "Not bad Nyx!"
-          (M.lookup "saito" ts) (M.lookup "unispace" fs)
+          (M.lookup "astral-avatar" ts) (M.lookup "unispace" fs)
         , LoadTextBox act{ stopTheWorld = True } $
           TB.make TB.Top 3
           "But did you really think it'll be that easy?"
-          (M.lookup "saito" ts) (M.lookup "unispace" fs)
+          (M.lookup "astral-avatar" ts) (M.lookup "unispace" fs)
         , LoadTextBox act{ stopTheWorld = True } $
           TB.make TB.Bottom 5
           "Who are you...?\nHow do you know my name?"
@@ -64,11 +60,11 @@ lScript playMusic tryNum MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs,
         , LoadTextBox act{ stopTheWorld = True } $
           TB.make TB.Top 3
           "I think you have bigger things to worry about right now!"
-          (M.lookup "saito" ts) (M.lookup "unispace" fs)
+          (M.lookup "astral-avatar" ts) (M.lookup "unispace" fs)
         , LoadTextBox act{ stopTheWorld = True } $
           TB.make TB.Top 4
           "Here I come!"
-          (M.lookup "saito" ts) (M.lookup "unispace" fs)
+          (M.lookup "astral-avatar" ts) (M.lookup "unispace" fs)
         , LoadTextBox act{ stopTheWorld = True } $
           TB.make TB.Bottom 2
           "!!!"
@@ -78,37 +74,37 @@ lScript playMusic tryNum MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs,
         [ LoadTextBox act{ stopTheWorld = True } $
           TB.make TB.Top 4
           "Did you really think you can beat me?"
-          (M.lookup "saito" ts) (M.lookup "unispace" fs)
+          (M.lookup "astral-avatar" ts) (M.lookup "unispace" fs)
         ]
       | tryNum < 7 ->
         [ LoadTextBox act{ stopTheWorld = True } $
           TB.make TB.Top 4
           "Didn't you have enough yet?"
-          (M.lookup "saito" ts) (M.lookup "unispace" fs)
+          (M.lookup "astral-avatar" ts) (M.lookup "unispace" fs)
         ]
       | tryNum < 10 ->
         [ LoadTextBox act{ stopTheWorld = True } $
           TB.make TB.Top 5
           "That persistence... Admirable..."
-          (M.lookup "saito" ts) (M.lookup "unispace" fs)
+          (M.lookup "astral-avatar" ts) (M.lookup "unispace" fs)
         ]
       | tryNum < 15 ->
         [ LoadTextBox act{ stopTheWorld = True } $
           TB.make TB.Top 4
           "Or maybe you just don't know when to give up..."
-          (M.lookup "saito" ts) (M.lookup "unispace" fs)
+          (M.lookup "astral-avatar" ts) (M.lookup "unispace" fs)
         ]
       | tryNum < 25 ->
         [ LoadTextBox act{ stopTheWorld = True } $
           TB.make TB.Top 6
           "You are never going to beat me."
-          (M.lookup "saito" ts) (M.lookup "unispace" fs)
+          (M.lookup "astral-avatar" ts) (M.lookup "unispace" fs)
         ]
       | otherwise ->
         [ LoadTextBox act{ stopTheWorld = True } $
           TB.make TB.Top 9
           "..."
-          (M.lookup "saito" ts) (M.lookup "unispace" fs)
+          (M.lookup "astral-avatar" ts) (M.lookup "unispace" fs)
         ]
   ) ++
   [ PlayMusic Mix.Forever ("battle", M.lookup "battle" ms)

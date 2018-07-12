@@ -119,7 +119,7 @@ update input mcPos enemies = \case
     in case n of
       255 ->
         pure (noAction, rest)
-      _ | n < jump ->
+      _ | n > 255 - jump ->
         pure (noAction, FadeOut 255 : rest)
       _ ->
         pure (noAction, FadeOut (n + jump) : rest)

@@ -19,7 +19,6 @@ import Control.Monad.Except
 import Control.Lens
 import Control.DeepSeq
 import qualified Control.Monad.State as SM
-import qualified Linear
 import qualified Data.DList as DL
 import qualified Data.Map as M
 
@@ -106,7 +105,7 @@ mkMainChar ts = do
             }
           , _lastDir = DirRight
           , _hitbox = Hitbox
-            { _pos = Point (380 + (charSize ^. x `div` 4)) (800 + (charSize ^. y `div` 4))
+            { _alignment = Point (charSize ^. x `div` 4) (charSize ^. y `div` 4)
             , _size = charSize
               & over x (`div` 2)
               & over y (`div` 2)
@@ -120,15 +119,15 @@ charSize = Point 60 108
 
 fixHitpos :: MainChar -> MainChar
 fixHitpos mc = mc
-  & set (hitbox . pos . x) ((+) (mc ^. pos . x) $ charSize ^. x `div` 4)
-  & set (hitbox . pos . y) ((+) (mc ^. pos . y) $ charSize ^. y `div` 4)
+  & set (hitbox . alignment . x) (charSize ^. x `div` 4)
+  & set (hitbox . alignment . y) (charSize ^. y `div` 4)
   & set (hitbox . size . x) (charSize ^. x `div` 2)
   & set (hitbox . size . y) (charSize ^. y `div` 3)
 
 halfHitbox :: MainChar -> MainChar
 halfHitbox mc = mc
-  & set (hitbox . pos . x) ((+) (mc ^. pos . x) $ charSize ^. x `div` 3)
-  & set (hitbox . pos . y) ((+) (mc ^. pos . y) $ charSize ^. y `div` 3)
+  & set (hitbox . alignment . x) (charSize ^. x `div` 3)
+  & set (hitbox . alignment . y) (charSize ^. y `div` 3)
   & set (hitbox . size . x) (charSize ^. x `div` 3)
   & set (hitbox . size . y) (charSize ^. y `div` 3)
 
@@ -202,10 +201,6 @@ checkHit bullets mc
   = mc
     & over health (flip (-) (maximum $ (0:) $ map (^. damage) bullets))
     & \mc' -> set hitTimer (if mc' ^. health <= 0 then hitTimeout * 4 else hitTimeout) mc'
-    -- & trace ("bullet pos: " ++ show (map (^. pos) bullets))
-    -- & trace ("bullet size: " ++ show (map (^. size) bullets))
-    -- & trace ("mc hitbox: " ++ show (mc ^. hitbox))
-    -- & trace ("hit: " ++ show (map (isNothing . flip isTouchingCircleRect mc) bullets))
   | otherwise
   = mc
 
@@ -215,19 +210,8 @@ render :: SDL.Renderer -> Camera -> MainChar -> IO ()
 render renderer cam mc =
   unless (mc ^. health < 0 && mc ^. hitTimer < 0) $ do
     let
-      rect = toRect (cam $ mc ^. hitbox . pos) (mc ^. hitbox . size)
-      h = fromIntegral $ mc ^. health * 3
-    if mc ^. hitTimer > 0 && mc ^. hitTimer `mod` 7 < 5
-    then do
-      SDL.rendererDrawColor renderer SDL.$= Linear.V4 (255 - h) (255 - h) 255 255
-      SDL.drawRect renderer (Just rect)
-      SDL.fillRect renderer (Just rect)
-    else do
-      Spr.render renderer cam (mc ^. pos) charSize (mc ^. sprite)
-      -- draw hitbox
-      -- SDL.rendererDrawColor renderer SDL.$= Linear.V4 (255 - h) (255 - h) 255 255
-      -- SDL.drawRect renderer (Just rect)
-      -- SDL.fillRect renderer (Just rect)
+      isHit = mc ^. hitTimer > 0 && mc ^. hitTimer `mod` 8 < 4
+    Spr.render renderer cam (mc ^. pos) charSize (if isHit then 100 else 255) (mc ^. sprite)
 
 get mc l
   | mc ^. health <= 0 && mc ^. hitTimer < 0 = Nothing

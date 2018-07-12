@@ -8,11 +8,8 @@
 module Enemy where
 
 import qualified SDL
-import qualified SDL.Vect as Vect
-import qualified SDL.Primitive as SDL
 
 import Data.Maybe
-import Control.Monad
 import Play.Engine.Utils
 import Play.Engine.Types
 import Play.Engine.Input
@@ -27,6 +24,7 @@ import qualified Attack as A
 import qualified DecorationObject as DO
 import qualified DecObj.SplitTexture as ST
 import qualified Play.Engine.Movement as MV
+import qualified Play.Engine.Sprite as Spr
 
 
 
@@ -34,15 +32,17 @@ data Enemy
   = Enemy
   { _pos :: {-# UNPACK #-} !IPoint
   , _size :: {-# UNPACK #-} !Size
+  , _sprite :: {-# UNPACK #-} !Spr.Sprite
+  , _hitbox :: {-# UNPACK #-} !Hitbox
   , _movement :: {-# UNPACK #-} !MV.Movement
   , _direction :: {-# UNPACK #-} !FPoint
   , _directionChanger :: Size -> Enemy -> FPoint
-  , _texture :: SDL.Texture
   , _attack :: {-# UNPACK #-} !A.Attack
   , _attackId :: {-# UNPACK #-} !Int
   , _attackChanger :: Enemy -> Int -> Maybe A.Attack
   , _health :: {-# UNPACK #-} !Int
   , _deathTime :: {-# UNPACK #-} !Int
+  , _deathParts :: {-# UNPACK #-} !IPoint
   , _timers :: {-# UNPACK #-} !EnemyTimers
   }
 
@@ -61,37 +61,42 @@ instance NFData Enemy where
     `seq` rnf _timers
     `seq` rnf _health
     `seq` rnf _attack
-    `seq` rnf _transparency
+    `seq` rnf _deathTime
+    `seq` rnf _deathParts
 
 instance NFData EnemyTimers where
   rnf (EnemyTimers {_hitTimer}) =
     rnf _hitTimer
     `seq` rnf _gracePeriodTimer
 
-instance Eq Enemy where
-  mc1 == mc2 =
-    mc1 ^. pos == mc2 ^. pos
-    && mc1 ^. size == mc2 ^. size
-
-instance Ord Enemy where
-  mc1 <= mc2 =
-    mc1 ^. pos <= mc2 ^. pos
-    && mc1 ^. size <= mc2 ^. size
 
 makeFieldsNoPrefix ''Enemy
 makeFieldsNoPrefix ''EnemyTimers
+
+instance Eq Enemy where
+  e1 == e2 =
+    e1 ^. pos == e2 ^. pos
+    && e1 ^. size == e2 ^. size
+
+instance Ord Enemy where
+  e1 <= e2 =
+    e1 ^. pos <= e2 ^. pos
+    && e1 ^. size <= e2 ^. size
+
 
 data MakeEnemy
   = MakeEnemy
   { mkePos :: {-# UNPACK #-} !IPoint
   , mkeSize :: {-# UNPACK #-} !Size
+  , mkeSprite :: {-# UNPACK #-} !Spr.Sprite
+  , mkeHitbox :: {-# UNPACK #-} !Hitbox
   , mkeMov :: {-# UNPACK #-} !MV.Movement
   , mkeHealth :: {-# UNPACK #-} !Int
   , mkeDirChanger :: Size -> Enemy -> FPoint
   , mkeAtk :: {-# UNPACK #-} !A.Attack
   , mkeAtkChanger :: Enemy -> Int -> Maybe A.Attack
-  , mkeEnemyTxt :: SDL.Texture
   , mkeDeathTime :: {-# UNPACK #-} !Int
+  , mkeDeathParts :: {-# UNPACK #-} !IPoint
   }
 
 mkEnemy :: MakeEnemy -> Enemy
@@ -99,15 +104,17 @@ mkEnemy MakeEnemy{..} =
   Enemy
     { _pos = mkePos
     , _size = mkeSize
+    , _sprite = mkeSprite
+    , _hitbox = mkeHitbox
     , _direction = Point 0 0
     , _movement = mkeMov
     , _directionChanger = mkeDirChanger
-    , _texture = mkeEnemyTxt
     , _attack = mkeAtk
     , _attackId = 0
     , _attackChanger = mkeAtkChanger
     , _health = mkeHealth
     , _deathTime = mkeDeathTime
+    , _deathParts = mkeDeathParts
     , _timers = initEnemyTimers
     }
 
@@ -135,6 +142,7 @@ update _ enemy = do
     enemy' =
       enemy
       & over pos (if isAlive enemy then (`addPoint` move) else id)
+      & over sprite (Spr.update Nothing False)
       & set movement mv
       & over timers updateTimers
       & set direction dir
@@ -146,9 +154,9 @@ update _ enemy = do
       then
         ST.make $ ST.MakeSplitTexture
           { mkPos = enemy' ^. pos
-          , mkSize = enemy' ^. size
-          , mkSplit = Point 3 3
-          , mkTexture = enemy' ^. texture
+          , mkSize = enemy' ^. sprite . size
+          , mkSplit = enemy' ^. deathParts
+          , mkTexture = enemy' ^. sprite . Spr.texture
           , mkTexturePos = Point 0 0
           , mkDeathTime = enemy' ^. deathTime
           }
@@ -173,9 +181,10 @@ updateTimers et =
     & over hitTimer (\t -> if t <= 0 then -1 else t - 1)
     & over gracePeriodTimer (\t -> if t <= 0 then -1 else t - 1)
 
+
 checkHit :: DL.DList Bullet -> Enemy -> Enemy
 checkHit bullets enemy
-  | any (isJust . isTouchingCircleCircle enemy) bullets && enemy ^. health > 0
+  | any (isJust . flip isTouchingCircleRect enemy) bullets && enemy ^. health > 0
   = enemy
     & over health (flip (-) (DL.head bullets ^. damage))
     & \enemy' ->
@@ -207,21 +216,18 @@ isAlive enemy =
 render :: SDL.Renderer -> Camera -> Enemy -> IO ()
 render renderer cam enemy = do
   let
-    rect = toRect (cam $ enemy ^. pos) (enemy ^. size)
-    h = fromIntegral $ 255 - max 0 (enemy ^. health * 2)
-    isHit = enemy ^. timers . hitTimer > 0 && enemy ^. timers . hitTimer `mod` 6 < 3
+    -- h = fromIntegral $ 255 - max 0 (enemy ^. health * 2)
+    isHit = enemy ^. timers . hitTimer > 0 && enemy ^. timers . hitTimer `mod` 8 < 4
 
-  SDL.textureBlendMode (enemy ^. texture) SDL.$= SDL.BlendAlphaBlend
-  SDL.textureAlphaMod  (enemy ^. texture) SDL.$= (if isHit then 170 else 255)
-  SDL.copy renderer (enemy ^. texture) Nothing (Just rect)
+  Spr.render renderer cam (enemy ^. pos) (enemy ^. size) (if isHit then 100 else 255) (enemy ^. sprite)
 
-  when isHit $ do
-    let
-      colour = Vect.V4 255 (255 - h) (255 - h) 50
-      radius = fromIntegral $ enemy ^. size . x `div` 2
-      center =
-        Vect.V2
-          (fromIntegral (cam (enemy ^. pos) ^. x) + radius)
-          (fromIntegral (cam (enemy ^. pos) ^. y) + radius)
-    SDL.circle renderer center radius colour
-    SDL.fillCircle renderer center radius colour
+  -- when isHit $ do
+  --   let
+  --     colour = Vect.V4 255 (255 - h) (255 - h) 150
+  --     radius = fromIntegral $ enemy ^. size . x `div` 2
+  --     center =
+  --       Vect.V2
+  --         (fromIntegral (cam (enemy ^. pos) ^. x) + radius)
+  --         (fromIntegral (cam (enemy ^. pos) ^. y) + radius)
+  --   SDL.circle renderer center radius colour
+  --   SDL.fillCircle renderer center radius colour

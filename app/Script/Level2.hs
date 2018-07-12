@@ -9,7 +9,6 @@ import Script
 import Play.Engine.Types
 import qualified Enemy.Static as St
 import qualified Enemy.CrossDown as CDE
-import qualified Enemy.SideToSideSpiral as SSE
 import qualified Play.Engine.State as State
 import qualified GameState as GS
 import qualified Script.Boss as Boss
@@ -28,12 +27,9 @@ level2 playMusic =
 wantedAssets :: [(String, MySDL.ResourceType FilePath)]
 wantedAssets =
   CDE.wantedAssets
-  ++ SSE.wantedAssets
   ++ St.wantedAssets
   ++ TB.wantedAssets
-  ++ [ ("saito",  MySDL.Texture "saito.png")
-     , ("saito2", MySDL.Texture "saito2.png")
-     , ("battle", MySDL.Music "battle.ogg")
+  ++ [ ("battle", MySDL.Music "battle.ogg")
      , ("nyx-avatar", MySDL.Texture "nyx-avatar.png")
      ]
 

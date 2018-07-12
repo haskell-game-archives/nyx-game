@@ -14,6 +14,7 @@ module Play.Engine.Sprite where
 
 import qualified SDL
 
+import Data.Word (Word8)
 import Play.Engine.Utils
 import Play.Engine.Types
 import Control.Lens
@@ -84,8 +85,8 @@ update !act !restart !sprite =
     & over action (\a -> maybe a id $ flip M.lookup (sprite ^. actionmap) =<< act)
     & over pos (\p -> if restart then 0 else if sprite ^. speed == 0 then (p + 1) `mod` (sprite ^. maxPos) else p)
 
-render :: SDL.Renderer -> Camera -> IPoint -> Size -> Sprite -> IO ()
-render renderer cam position sz sprite = do
+render :: SDL.Renderer -> Camera -> IPoint -> Size -> Word8 -> Sprite -> IO ()
+render renderer cam position sz transp sprite = do
   let
     rect = toRect (cam $ position) sz
     ssz =  (sprite ^. size . x, sprite ^. size . y)
@@ -93,5 +94,6 @@ render renderer cam position sz sprite = do
       (Linear.P $ Linear.V2 (fst ssz * sprite ^. pos) (snd ssz * sprite ^. action))
       (uncurry Linear.V2 ssz)
   SDL.textureBlendMode (sprite ^. texture) SDL.$= SDL.BlendAlphaBlend
-  SDL.textureAlphaMod  (sprite ^. texture) SDL.$= 255
+  SDL.textureAlphaMod  (sprite ^. texture) SDL.$= transp
   SDL.copy renderer (sprite ^. texture) (Just $ fmap fromIntegral clip) (Just rect)
+  SDL.textureAlphaMod  (sprite ^. texture) SDL.$= 255

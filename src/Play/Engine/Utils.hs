@@ -105,7 +105,7 @@ makeFieldsNoPrefix ''HasPosSize
 
 data Hitbox
   = Hitbox
-  { _pos :: {-# UNPACK #-} !IPoint
+  { _alignment :: {-# UNPACK #-} !IPoint
   , _size :: {-# UNPACK #-} !Size
   }
   deriving (Eq, Show)
@@ -126,21 +126,29 @@ circ' = HasPosSize
   }
 rec' = HasHitBox
   { _hitbox = Hitbox
-    { _pos = Point 346 830
+    { _alignment = Point 346 830
     , _size = Point 21 64
     }
   }
 
 -- https://stackoverflow.com/questions/21089959/detecting-collision-of-rectangle-with-circle
 isTouchingCircleRect
-  :: (HasSize circle Size, HasPos circle IPoint, HasHitbox rect Hitbox)
+  :: (HasPos circle IPoint, HasSize circle Size, HasPos rect IPoint, HasHitbox rect Hitbox)
   => circle -> rect -> Maybe (circle, rect)
 isTouchingCircleRect circle rect =
   let
     circleDistance =
       Point
-        (abs $ circle ^. pos . x - (rect ^. hitbox . pos . x) - (rect ^. hitbox . size . x) `div` 2)
-        (abs $ circle ^. pos . y - (rect ^. hitbox . pos . y) - (rect ^. hitbox . size . y) `div` 2)
+        ( abs
+          $ circle ^. pos . x
+          - (rect ^. pos . x + rect ^. hitbox . alignment . x)
+          - (rect ^. hitbox . size . x) `div` 2
+        )
+        ( abs
+          $ circle ^. pos . y
+          - (rect ^. pos . y + rect ^. hitbox . alignment . y)
+          - (rect ^. hitbox . size . y) `div` 2
+        )
 
     cornerDistance_sq =
       (+)
