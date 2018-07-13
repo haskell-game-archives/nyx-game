@@ -26,6 +26,7 @@ dependencies:
 - random
 - stm
 - async
+- optparse-generic
 - sdl2
 - sdl2-gfx
 - sdl2-image
