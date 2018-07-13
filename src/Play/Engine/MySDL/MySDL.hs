@@ -24,12 +24,12 @@ import qualified SDL
 import qualified SDL.Image as SDLI
 import qualified SDL.Font as SDLF
 import qualified SDL.Mixer as Mix
-import qualified Linear
+import SDL.Vect (V2(..), V4(..))
 
 --import Debug.Trace
 
 -- | Config window
-myWindowConfig :: Linear.V2 C.CInt -> SDL.WindowConfig
+myWindowConfig :: V2 C.CInt -> SDL.WindowConfig
 myWindowConfig size = SDL.defaultWindow { SDL.windowInitialSize = size }
 
 -- | Init SDL and create a Window and pass in as a parameter to function
@@ -116,7 +116,7 @@ getJoystick = do
 
 
 
-setBGColor :: MonadIO m => Linear.V4 Word8 -> SDL.Renderer -> m SDL.Renderer
+setBGColor :: MonadIO m => V4 Word8 -> SDL.Renderer -> m SDL.Renderer
 setBGColor color renderer = do
   SDL.rendererDrawColor renderer SDL.$= color
   SDL.clear renderer
@@ -200,7 +200,7 @@ runRequest resources queue renderer req =
         SDL.destroyTexture txt
       MakeText (n, p) txt -> do
         (_, RFont fnt) <- loadResource renderer resources (n, Font p)
-        text <- SDL.createTextureFromSurface renderer =<< SDLF.solid fnt (Linear.V4 255 255 255 255) txt
+        text <- SDL.createTextureFromSurface renderer =<< SDLF.solid fnt (V4 255 255 255 255) txt
         atomically $ writeTQueue queue $ NewText text
       PlayMusic (n, p) -> do
         (_, RMusic msc) <- loadResource renderer resources (n, Music p)

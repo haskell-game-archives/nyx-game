@@ -21,8 +21,8 @@ import Control.Lens
 import GHC.Generics
 import Data.Typeable
 
-import qualified Linear
-import qualified Linear.Affine as Linear
+import SDL.Vect (V2(..))
+import qualified SDL.Vect as Vect (Point(..))
 import qualified Data.Map as M
 import qualified Data.Text as T
 
@@ -91,8 +91,8 @@ render renderer cam position sz transp sprite = do
     rect = toRect (cam $ position) sz
     ssz =  (sprite ^. size . x, sprite ^. size . y)
     clip = SDL.Rectangle
-      (Linear.P $ Linear.V2 (fst ssz * sprite ^. pos) (snd ssz * sprite ^. action))
-      (uncurry Linear.V2 ssz)
+      (Vect.P $ V2 (fst ssz * sprite ^. pos) (snd ssz * sprite ^. action))
+      (uncurry V2 ssz)
   SDL.textureBlendMode (sprite ^. texture) SDL.$= SDL.BlendAlphaBlend
   SDL.textureAlphaMod  (sprite ^. texture) SDL.$= transp
   SDL.copy renderer (sprite ^. texture) (Just $ fmap fromIntegral clip) (Just rect)

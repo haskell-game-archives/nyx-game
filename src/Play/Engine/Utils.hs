@@ -9,13 +9,12 @@
 module Play.Engine.Utils where
 
 import Data.Word (Word8)
-import SDL.Vect (V4(..))
+import SDL.Vect (V4(..), V2(..))
+import qualified SDL.Vect as Vect (Point(..))
 import qualified SDL
 import qualified SDL.Font as SDLF
 import qualified Data.Text as T
 import qualified Foreign.C.Types as C (CInt)
-import qualified Linear
-import qualified Linear.Affine as Linear
 import Control.Lens
 import Control.DeepSeq
 
@@ -91,8 +90,8 @@ updateListWith start combine f = flip DL.foldr (DL.empty, start) $ \a !acc ->
 toRect :: IPoint -> Size -> SDL.Rectangle C.CInt
 toRect posi sz =
   SDL.Rectangle
-    (Linear.P . uncurry Linear.V2 . over both fromIntegral . pointToTuple $ posi)
-    (uncurry Linear.V2 . over both fromIntegral . sizeToTuple $ sz)
+    (Vect.P . uncurry V2 . over both fromIntegral . pointToTuple $ posi)
+    (uncurry V2 . over both fromIntegral . sizeToTuple $ sz)
 
 data HasPosSize
   = HasPosSize

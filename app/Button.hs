@@ -18,7 +18,7 @@ import Play.Engine.Settings
 import Play.Engine.Input
 import Control.Lens
 import Control.Monad.Except
-import qualified Linear
+import SDL.Vect (V4(..))
 import qualified Data.Text as T
 import qualified Data.Map as M
 
@@ -66,16 +66,16 @@ render renderer marked btn
   let
     rect = toRect (btn ^. pos) (btn ^. size)
 
-  SDL.rendererDrawColor renderer SDL.$= Linear.V4 0 0 0 255
+  SDL.rendererDrawColor renderer SDL.$= V4 0 0 0 255
   SDL.fillRect renderer (Just rect)
-  SDL.rendererDrawColor renderer SDL.$= Linear.V4 100 (if marked then 255 else 130) (if btn ^. isClicked then 255 else 180) 255
+  SDL.rendererDrawColor renderer SDL.$= V4 100 (if marked then 255 else 130) (if btn ^. isClicked then 255 else 180) 255
   SDL.drawRect renderer (Just rect)
 
   if T.length (btn ^. text) < 1
     then pure ()
     else do
       txt <- SDL.createTextureFromSurface renderer
-        =<< SDLF.solid (btn ^. font) (Linear.V4 255 255 255 255) (btn ^. text)
+        =<< SDLF.solid (btn ^. font) (V4 255 255 255 255) (btn ^. text)
       ti <- SDL.queryTexture txt
       let
         loc =

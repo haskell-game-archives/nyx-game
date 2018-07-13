@@ -10,25 +10,20 @@ extra-source-files:
 
 dependencies:
 - base >= 4.7 && < 5
-- async
 - containers
 - dlist
-- transformers
 - mtl
 - text
 - bytestring
-- file-embed
 - vector
 - lens
 - bytestring
-- linear
 - deepseq
 - random
 - stm
 - async
 - optparse-generic
 - sdl2
-- sdl2-gfx
 - sdl2-image
 - sdl2-mixer
 - sdl2-ttf
@@ -62,7 +57,6 @@ executables:
     source-dirs:         app
     dependencies:
     - base
-    - optparse-generic
     - play
 
     ghc-options:

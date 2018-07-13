@@ -2,6 +2,7 @@
 
 module Play.Engine.Load where
 
+import SDL.Vect (V4(..))
 import qualified SDL
 import qualified Play.Engine.MySDL.MySDL as MySDL
 
@@ -10,7 +11,6 @@ import Play.Engine.Settings
 import qualified Play.Engine.State as State
 import Control.Monad.Except
 import Control.Lens
-import qualified Linear
 
 data State
   = State
@@ -52,4 +52,11 @@ update input s@(State _ files next) =
 render :: SDL.Renderer -> State -> IO ()
 render renderer state =
   let c = fromIntegral $ state ^. timer
-  in void $ MySDL.setBGColor (Linear.V4 (20 `mod` 255) ((10 + (c `div` 3)) `mod` 255) ((20 + (c `div` 2)) `mod` 255) 255) renderer
+  in void $ MySDL.setBGColor
+    ( V4
+      (20 `mod` 255)
+      ((10 + (c `div` 3)) `mod` 255)
+      ((20 + (c `div` 2)) `mod` 255)
+      255
+    )
+    renderer

@@ -8,7 +8,7 @@ import qualified Data.Map as M
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad
 import qualified SDL
-import qualified Linear
+import SDL.Vect (V2(..), V4(..))
 import Control.Lens hiding (sets)
 import Control.DeepSeq
 import Control.Concurrent.STM.TQueue
@@ -34,7 +34,7 @@ run :: Settings -> Stack State.State -> IO ()
 run settings stack = do
   responsesQueue <- newTQueueIO
   resources <- MySDL.initResources
-  void $ MySDL.withWindow "Game" (MySDL.myWindowConfig (Linear.V2 (winSize x) (winSize y))) $
+  void $ MySDL.withWindow "Game" (MySDL.myWindowConfig (V2 (winSize x) (winSize y))) $
     flip MySDL.withRenderer
       (\(window, ren) ->
           MySDL.apploop
@@ -86,6 +86,6 @@ render (_, renderer) stack = do
 
 setBGColorBlack :: MonadIO m => (SDL.Window, SDL.Renderer) -> m (SDL.Window, SDL.Renderer)
 setBGColorBlack sdlStuff@(_, renderer) = do
-  void $ MySDL.setBGColor (Linear.V4 0 0 0 255) renderer
+  void $ MySDL.setBGColor (V4 0 0 0 255) renderer
   pure sdlStuff
 

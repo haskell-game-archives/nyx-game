@@ -8,6 +8,7 @@
 
 module TextBox where
 
+import SDL.Vect (V4(..))
 import qualified SDL
 import qualified SDL.Font as SDLF
 import qualified Play.Engine.MySDL.MySDL as MySDL
@@ -21,7 +22,6 @@ import Play.Engine.Settings
 import Play.Engine.Input
 import Control.Lens
 import Control.Monad.Except
-import qualified Linear
 import qualified Control.Monad.State as SM
 import qualified Data.Text as T
 import qualified Play.Engine.ListZipper as Zip
@@ -141,9 +141,9 @@ render renderer tb
   let
     rect = toRect (tb ^. pos) (tb ^. size)
 
-  SDL.rendererDrawColor renderer SDL.$= Linear.V4 0 0 0 150
+  SDL.rendererDrawColor renderer SDL.$= V4 0 0 0 150
   SDL.fillRect renderer (Just rect)
-  SDL.rendererDrawColor renderer SDL.$= Linear.V4 255 0 160 200
+  SDL.rendererDrawColor renderer SDL.$= V4 255 0 160 200
   SDL.drawRect renderer (Just rect)
 
   loc <- case tb ^. avatar of
@@ -168,7 +168,7 @@ renderText renderer tb loc (idx, (txtPart, txt)) =
       texture <- SDL.createTextureFromSurface renderer
         =<< SDLF.solid
           (tb ^. font)
-          (Linear.V4 255 255 255 255)
+          (V4 255 255 255 255)
           (T.take txtPart txt)
       ti <- SDL.queryTexture texture
       SDL.copy
