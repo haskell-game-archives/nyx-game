@@ -52,6 +52,7 @@ make posi ts = do
           , mkeAtkChanger = \_ _ -> Nothing
           , mkeDeathTime = 0
           , mkeDeathParts = Point 3 3
+          , mkeDeathTexture = et
           , mkeSprite =
             fromJust
               $ Spr.make

@@ -30,16 +30,17 @@ import Data.Maybe (fromJust)
 wantedAssets :: [(String, MySDL.ResourceType FilePath)]
 wantedAssets =
   [ ("bullet", MySDL.Texture "bullet.png")
+  , ("astral-sprite", MySDL.Texture "astral-sprite.png")
   , ("astral", MySDL.Texture "astral.png")
   ]
 
 make :: IPoint -> M.Map String SDL.Texture -> Result Enemy
 make posi ts = do
   let textName = "bullet"
-  case (,) <$> M.lookup textName ts <*> M.lookup "astral" ts of
+  case (,,) <$> M.lookup textName ts <*> M.lookup "astral" ts <*> M.lookup "astral-sprite" ts of
     Nothing ->
       throwError ["Texture not found: astral or " ++ textName ++ " in " ++ show (M.keys ts)]
-    Just (bt, et) -> do
+    Just (bt, et, spr) -> do
       let
         sz = Point 100 100
       pure . mkEnemy $
@@ -62,10 +63,10 @@ make posi ts = do
               $ Spr.MakeArgs
               { mkActionmap = ["normal"]
               , mkAction = "normal"
-              , mkTexture = et
+              , mkTexture = spr
               , mkSize = sz
-              , mkMaxPos = 1
-              , mkSpeed = 1
+              , mkMaxPos = 4
+              , mkSpeed = 5
               }
           , mkeHitbox = Hitbox
             { _alignment = Point 30 6
@@ -75,6 +76,7 @@ make posi ts = do
             }
           , mkeDeathTime = 150
           , mkeDeathParts = Point 4 3
+          , mkeDeathTexture = et
           }
 
 crossMovement :: Either () () -> MV.Movement

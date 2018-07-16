@@ -70,6 +70,7 @@ make posi dir ts = do
             }
           , mkeDeathTime = 20
           , mkeDeathParts = Point 3 3
+          , mkeDeathTexture = et
           }
 
 crossMovement :: Either () () -> MV.Movement

@@ -43,6 +43,7 @@ data Enemy
   , _health :: {-# UNPACK #-} !Int
   , _deathTime :: {-# UNPACK #-} !Int
   , _deathParts :: {-# UNPACK #-} !IPoint
+  , _deathTexture :: {-# UNPACK #-} !SDL.Texture
   , _timers :: {-# UNPACK #-} !EnemyTimers
   }
 
@@ -97,6 +98,7 @@ data MakeEnemy
   , mkeAtkChanger :: Enemy -> Int -> Maybe A.Attack
   , mkeDeathTime :: {-# UNPACK #-} !Int
   , mkeDeathParts :: {-# UNPACK #-} !IPoint
+  , mkeDeathTexture :: {-# UNPACK #-} !SDL.Texture
   }
 
 mkEnemy :: MakeEnemy -> Enemy
@@ -115,6 +117,7 @@ mkEnemy MakeEnemy{..} =
     , _health = mkeHealth
     , _deathTime = mkeDeathTime
     , _deathParts = mkeDeathParts
+    , _deathTexture = mkeDeathTexture
     , _timers = initEnemyTimers
     }
 
@@ -156,7 +159,7 @@ update _ enemy = do
           { mkPos = enemy' ^. pos
           , mkSize = enemy' ^. sprite . size
           , mkSplit = enemy' ^. deathParts
-          , mkTexture = enemy' ^. sprite . Spr.texture
+          , mkTexture = enemy' ^. deathTexture
           , mkTexturePos = Point 0 0
           , mkDeathTime = enemy' ^. deathTime
           }
