@@ -35,7 +35,7 @@ wantedAssets =
 introScript :: MySDL.Resources -> Script
 introScript MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs, MySDL.music = ms } =
 
-  [ FadeIn 200
+  [ FadeIn noAction 200
   , PlayMusic Mix.Forever ("store", M.lookup "store" ms)
 
   , let

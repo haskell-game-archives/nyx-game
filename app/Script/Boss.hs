@@ -113,28 +113,32 @@ lScript playMusic tryNum MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs,
   -- Boss
   [ Spawn $ sequence [Fast.make (Point 350 (-100)) ts]
   , WaitUntil noAction (const $ null)
-  , Shake
 
-  , Wait act{ stopTheWorld = False } 100
   , StopMusic
-
-  , Wait act{ stopTheWorld = False } 150
+  , Wait act{ stopTheWorld = False } 2
+  , Wait act{ stopTheWorld = True } 150
 
   -- End
   , LoadTextBox act{ stopTheWorld = True } $
-    TB.make TB.Top 8
+    TB.make TB.Top 6
     "It's not over Nyx!"
     Nothing (M.lookup "unispace" fs)
 
   , LoadTextBox act{ stopTheWorld = True } $
-    TB.make TB.Top 9
+    TB.make TB.Top 7
     "This is just the beginning!!"
     Nothing (M.lookup "unispace" fs)
 
   , LoadTextBox act{ stopTheWorld = True } $
-    TB.make TB.Top 15
+    TB.make TB.Top 10
     "J u S t . Y o U . W a I t . . ."
     Nothing (M.lookup "unispace" fs)
+
+  , Wait act{ stopTheWorld = True } 60
+
+  , Shake
+
+  , Wait act{ stopTheWorld = False } 150
 
   , Wait act{ stopTheWorld = True } 150
 
@@ -160,8 +164,7 @@ lScript playMusic tryNum MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs,
     "But my fight was far from over..."
     Nothing (M.lookup "unispace" fs)
 
-  , FadeOut 0
+  , FadeOut act{ command = State.Replace $ End.end True } 0
 
-  , Wait act{ command = State.Replace $ End.end True } 60
   ]
 

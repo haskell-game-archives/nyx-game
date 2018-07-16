@@ -31,8 +31,8 @@ data Command
   | PlayMusic' Mix.Times BS.ByteString
   | StopMusic
   | Shake
-  | FadeOut Word8
-  | FadeIn Word8
+  | FadeOut !Actions Word8
+  | FadeIn !Actions Word8
   | TextUp Word8 SDLF.Font IPoint T.Text
 
 data ScriptData
@@ -113,26 +113,26 @@ update input mcPos enemies = \case
   Shake : rest ->
     pure (noAction { shake = True }, rest)
 
-  FadeOut n : rest ->
+  FadeOut actions n : rest ->
     let
       jump = 2
     in case n of
       255 ->
-        pure (noAction, rest)
+        pure (actions, rest)
       _ | n > 255 - jump ->
-        pure (noAction, FadeOut 255 : rest)
+        pure (noAction, FadeOut actions 255 : rest)
       _ ->
-        pure (noAction, FadeOut (n + jump) : rest)
+        pure (noAction, FadeOut actions (n + jump) : rest)
 
-  FadeIn n : rest ->
+  FadeIn actions n : rest ->
     let
       jump = 2
     in case n of
-      0 -> pure (noAction, rest)
+      0 -> pure (actions, rest)
       _ | n < jump ->
-        pure (noAction, FadeIn 0 : rest)
+        pure (noAction, FadeIn actions 0 : rest)
       _ ->
-        pure (noAction, FadeIn (n - jump) : rest)
+        pure (noAction, FadeIn actions (n - jump) : rest)
 
   TextUp spd font location txt : rest ->
     case location ^. y of
@@ -167,8 +167,8 @@ render renderer cam =
       StopMusic ->
         void $ Mix.fadeOutMusic (1000 * 2) -- milliseconds
 
-      FadeOut n -> shade renderer cam n
-      FadeIn  n -> shade renderer cam n
+      FadeOut _ n -> shade renderer cam n
+      FadeIn  _ n -> shade renderer cam n
 
       TextUp _ font location txt ->
         renderText renderer font location txt
