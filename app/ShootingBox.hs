@@ -41,6 +41,7 @@ data MainChar
   , _size :: {-# UNPACK #-} !Size
   , _movement :: {-# UNPACK #-} !MV.Movement
   , _sprite :: !Spr.Sprite
+  , _bullet :: !SDL.Texture
   , _hitTimer :: {-# UNPACK #-} !Int
   , _bulletsTimer :: {-# UNPACK #-} !Int
   , _health :: {-# UNPACK #-} !Int
@@ -74,13 +75,14 @@ instance Ord MainChar where
 wantedAssets :: [(String, MySDL.ResourceType FilePath)]
 wantedAssets =
   [ ("nyx-sprites", MySDL.Texture "nyx-sprites-animated.png")
+  , ("nyx-bullet", MySDL.Texture "nyx-bullet.png")
   ]
 
 
 mkMainChar :: M.Map String SDL.Texture -> Result MainChar
 mkMainChar ts = do
   case mapM ((`M.lookup` ts) . fst) wantedAssets of
-    Just [nyxSprites] ->
+    Just [nyxSprites, nyxBullet] ->
       pure $
         MainChar
           { _pos = Point 380 800
@@ -96,6 +98,7 @@ mkMainChar ts = do
               , mkMaxPos = 4
               , mkSpeed = 5
               }
+          , _bullet = nyxBullet
           , _hitTimer = -1
           , _bulletsTimer = 5
           , _health = 1
@@ -182,11 +185,11 @@ update input mc = do
 newBullet :: MainChar -> [Bullet]
 newBullet mc
   | mc ^. size . x == charSize ^. x =
-    [ mkBullet (mc ^. sprite . Spr.texture) (Point 0 (-1)) mv 2 100 ((mc ^. pos) `addPoint` Point (mc ^. size . x `div` 4) 0)
-    , mkBullet (mc ^. sprite . Spr.texture) (Point 0 (-1)) mv 2 100 ((mc ^. pos) `addPoint` Point ((mc ^. size . x `div` 4) * 3) 0)
+    [ mkBullet (mc ^. bullet) (Point 0 (-1)) mv 2 100 ((mc ^. pos) `addPoint` Point (mc ^. size . x `div` 4) 0)
+    , mkBullet (mc ^. bullet) (Point 0 (-1)) mv 2 100 ((mc ^. pos) `addPoint` Point ((mc ^. size . x `div` 4) * 3) 0)
     ]
   | otherwise =
-    [ mkBullet (mc ^. sprite . Spr.texture) (Point 0 (-1)) mv 5 100 ((mc ^. pos) `addPoint` Point (charSize ^. x `div` 2) 0)
+    [ mkBullet (mc ^. bullet) (Point 0 (-1)) mv 5 140 ((mc ^. pos) `addPoint` Point (charSize ^. x `div` 2) 0)
     ]
 
   where
