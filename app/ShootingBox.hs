@@ -185,8 +185,8 @@ update input mc = do
 newBullet :: MainChar -> [Bullet]
 newBullet mc
   | mc ^. size . x == charSize ^. x =
-    [ mkBullet (mc ^. bullet) (Point 0 (-1)) mv 2 100 ((mc ^. pos) `addPoint` Point (mc ^. size . x `div` 4) 0)
-    , mkBullet (mc ^. bullet) (Point 0 (-1)) mv 2 100 ((mc ^. pos) `addPoint` Point ((mc ^. size . x `div` 4) * 3) 0)
+    [ mkBullet (mc ^. bullet) (Point 0 (-1)) mv 2 70 ((mc ^. pos) `addPoint` Point (mc ^. size . x `div` 4) 0)
+    , mkBullet (mc ^. bullet) (Point 0 (-1)) mv 2 70 ((mc ^. pos) `addPoint` Point ((mc ^. size . x `div` 4) * 3) 0)
     ]
   | otherwise =
     [ mkBullet (mc ^. bullet) (Point 0 (-1)) mv 5 140 ((mc ^. pos) `addPoint` Point (charSize ^. x `div` 2) 0)
