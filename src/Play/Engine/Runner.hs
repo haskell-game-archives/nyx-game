@@ -18,19 +18,19 @@ import Play.Engine.Input
 import Play.Engine.Types
 import Play.Engine.Utils
 import Play.Engine.Settings
-import qualified Play.Engine.State as State
+import Play.Engine.Scene
 
 -----------
 -- Logic --
 -----------
 
-runGame :: Settings -> Stack State.State -> IO ()
+runGame :: Settings -> Stack Scene -> IO ()
 runGame sets w = do
   putStrLn "Hello Game!"
   _ <- run sets w
   putStrLn "Goodbye."
 
-run :: Settings -> Stack State.State -> IO ()
+run :: Settings -> Stack Scene -> IO ()
 run settings stack = do
   responsesQueue <- newTQueueIO
   resources <- MySDL.initResources
@@ -52,8 +52,8 @@ update
   :: [MySDL.Response]
   -> [SDL.EventPayload]
   -> (SDL.Scancode -> Bool)
-  -> (Settings, Stack State.State)
-  -> IO (Either [String] ([MySDL.Request], (Settings, Stack State.State)))
+  -> (Settings, Stack Scene)
+  -> IO (Either [String] ([MySDL.Request], (Settings, Stack Scene)))
 update responses payload isKeyPressed (settings, stack) =
   let
     (keys, joykeys) = makeEvents (_keyStats settings) (_joyKeyStats settings) payload isKeyPressed (_keyMap settings)
@@ -75,13 +75,13 @@ update responses payload isKeyPressed (settings, stack) =
   in pure
     . fmap (\(setts, (reqs, states)) -> (toggleMuteCmd reqs, (setts, states)))
     . (joykeys `deepseq` keys `deepseq` runResult $! settings')
-    $ State.updater (Input (M.unionWith max keys joykeys) responses) stack
+    $ updateScenes (Input (M.unionWith max keys joykeys) responses) stack
 
 
-render :: (SDL.Window, SDL.Renderer) -> Stack State.State -> IO ()
+render :: (SDL.Window, SDL.Renderer) -> Stack Scene -> IO ()
 render (_, renderer) stack = do
   SDL.rendererDrawBlendMode renderer SDL.$= SDL.BlendAlphaBlend
-  State.renderer renderer stack
+  renderTopScene renderer stack
   SDL.present renderer
 
 setBGColorBlack :: MonadIO m => (SDL.Window, SDL.Renderer) -> m (SDL.Window, SDL.Renderer)

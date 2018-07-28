@@ -6,16 +6,15 @@ import qualified Play.Engine.MySDL.MySDL as MySDL
 import qualified SDL.Mixer as Mix
 
 import Script
-import Play.Engine.Types
+import Play.Engine
 import qualified Enemy.Fast as Fast
-import qualified Play.Engine.State as State
 import qualified GameState as GS
 import qualified TextBox as TB
 import qualified Data.Map as M
 import qualified Script.End as End
 
 
-boss :: Bool -> Int -> State.State
+boss :: Bool -> Int -> Scene
 boss playMusic tryNum =
   GS.mkGameState $ Script
     wantedAssets
@@ -164,7 +163,7 @@ lScript playMusic tryNum MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs,
     "But my fight was far from over..."
     Nothing (M.lookup "unispace" fs)
 
-  , FadeOut act{ command = State.Replace $ End.end True } 0
+  , FadeOut act{ command = Replace $ End.end True } 0
 
   ]
 

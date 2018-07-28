@@ -12,11 +12,7 @@ import Data.Maybe (fromJust)
 import qualified SDL
 import qualified Play.Engine.MySDL.MySDL as MySDL
 
-import Play.Engine.Utils hiding (head)
-import Play.Engine.Types
-import Play.Engine.Input as I
-import Play.Engine.Settings
---import Control.Monad
+import Play.Engine hiding (head)
 import Control.Monad.Except
 import Control.Lens
 import Data.Bifunctor
@@ -24,7 +20,6 @@ import Data.Bool
 import qualified Data.Map as M
 import qualified Play.Engine.Sprite as Spr
 import qualified Play.Engine.ListZipper as Z
-import qualified Play.Engine.State as State
 import qualified Play.Engine.Load as Load
 import qualified Control.Monad.State as SM
 
@@ -39,7 +34,7 @@ import qualified Button as Btn
 data State
   = State
   { _bg :: Spr.Sprite
-  , _buttons :: Z.ListZipper (Btn.Button, Result State.Command)
+  , _buttons :: Z.ListZipper (Btn.Button, Result StackCommand)
   }
 
 makeFieldsNoPrefix ''State
@@ -49,13 +44,13 @@ wantedAssets =
   [ ("vnbg", MySDL.Texture "VNBG.png")
   ] ++ Btn.wantedAssets
 
-make :: State.State
+make :: Scene
 make = Load.mkState 0 wantedAssets mkState
 
-mkState :: MySDL.Resources -> Result State.State
+mkState :: MySDL.Resources -> Result Scene
 mkState rs = do
   state <- initState rs
-  pure $ State.mkState
+  pure $ mkScene
     state
     update
     render
@@ -71,7 +66,7 @@ initState rs = do
           Btn.make (Point 320 (600 + n * 60)) (Point 180 50) rs
 
         makeBtn name state n =
-          (, pure $ State.Replace state)
+          (, pure $ Replace state)
             <$> makeBtn' n name
 
       btns <- sequence $ zipWith (flip ($)) [0..] $
@@ -81,7 +76,7 @@ initState rs = do
         , makeBtn "Boss" $ Boss.boss True 0
         , makeBtn "Credits" $ End.end True
 
-        , \n -> (, pure $ State.Done)
+        , \n -> (, pure $ Done)
           <$> makeBtn' n "Back"
         ]
 
@@ -103,10 +98,10 @@ initState rs = do
           (tail btns)
         }
 
-update :: Input -> State -> Result (State.Command, State)
+update :: Input -> State -> Result (StackCommand, State)
 update input state = do
   _wSize <- _windowSize <$> SM.get
-  btns <- Z.diffMapM (firstM $ Btn.update I.empty) (firstM $ Btn.update input)
+  btns <- Z.diffMapM (firstM $ Btn.update empty) (firstM $ Btn.update input)
     $ if
        | keyClicked KeyDown input ->
          Z.nextCycle (state ^. buttons)
@@ -118,7 +113,7 @@ update input state = do
           state ^. buttons
 
   let ((check, _), cmd') = Z.get btns
-  cmd <- bool (pure State.None) cmd' (check || keyClicked KeyQuit input)
+  cmd <- bool (pure None) cmd' (check || keyClicked KeyQuit input)
   pure
     ( cmd
     , state

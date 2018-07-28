@@ -22,7 +22,7 @@ import Data.Maybe
 import Control.Monad.Except
 import Control.Lens
 import System.Random
-import qualified Play.Engine.State as State
+import Play.Engine
 import qualified Play.Engine.Load as Load
 import qualified Control.Monad.State as SM
 import qualified Data.Map as M
@@ -52,15 +52,15 @@ wantedAssets =
   , ("unispace", MySDL.Font "unispace/unispace.ttf")
   ]
 
-make :: Int -> Script.ScriptData -> State.State
+make :: Int -> Script.ScriptData -> Scene
 make t sd = Load.mkState t (wantedAssets ++ Script.assets sd) (mkState $ Script.script sd)
 
 mkState
   :: (MySDL.Resources -> Script.Script)
-  -> MySDL.Resources -> Result State.State
+  -> MySDL.Resources -> Result Scene
 mkState scrpt rs = do
   state <- initState (scrpt rs) rs
-  pure $ State.mkState
+  pure $ mkScene
     state
     update
     render
@@ -93,7 +93,7 @@ initState scrpt rs = do
         , _exit = False
         }
 
-update :: Input -> State -> Result (State.Command, State)
+update :: Input -> State -> Result (StackCommand, State)
 update input st = do
   _wSize <- _windowSize <$> SM.get
   ismute <- _muteMusic <$> SM.get
@@ -128,15 +128,15 @@ update input st = do
 
   if
     | keyReleased KeyP input && state ^. isPause -> do
-      pure (State.None, set pauseChanged True $ set isPause False state)
+      pure (None, set pauseChanged True $ set isPause False state)
     | keyReleased KeyP input && not (state ^. isPause) -> do
-      pure (State.None, set pauseChanged True $ set isPause True state)
+      pure (None, set pauseChanged True $ set isPause True state)
     | state ^. isPause -> do
-      pure (State.None, state)
+      pure (None, state)
     | keyReleased KeyQuit input -> do
-      pure (State.None, set exit True state)
+      pure (None, set exit True state)
     | state ^. exit -> do
-      pure (State.Done, state)
+      pure (Done, state)
     | otherwise ->
       pure (Script.command acts, newState)
 

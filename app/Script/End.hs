@@ -7,14 +7,13 @@ import qualified SDL.Mixer as Mix
 
 import Data.Maybe (fromJust)
 import Script
-import Play.Engine.Types
-import qualified Play.Engine.State as State
+import Play.Engine
 import qualified Credits
 import qualified TextBox as TB
 import qualified Data.Map as M
 
 
-end :: Bool -> State.State
+end :: Bool -> Scene
 end playMusic =
   Credits.make 0 $ Script
     wantedAssets
@@ -40,5 +39,5 @@ lScript playMusic MySDL.Resources{ MySDL.fonts = fs, MySDL.music = ms } =
   , TextUp 2 (fromJust $ M.lookup "unispace" fs) (Point 270 1000) "THANKS FOR PLAYING!"
   , Wait noAction 60
   , StopMusic
-  , Wait act{ command = State.Done } 120
+  , Wait act{ command = Done } 120
   ]

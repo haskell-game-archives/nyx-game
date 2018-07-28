@@ -17,7 +17,7 @@ import Play.Engine.Types
 import Control.Lens
 import Control.Monad.Except
 import qualified Play.Engine.Input as I
-import qualified Play.Engine.State as State
+import Play.Engine
 import qualified Play.Engine.Sprite as Spr
 
 
@@ -39,7 +39,7 @@ data ScriptData
   = Script
   { assets :: [(String, MySDL.ResourceType FilePath)]
   , script :: MySDL.Resources -> Script
-  , restart :: State.State
+  , restart :: Scene
   }
 
 type Script = [Command]
@@ -51,7 +51,7 @@ data Actions
   , stopTheWorld :: Bool
   , shake :: Bool
   , playMusic :: MusicAction
-  , command :: State.Command
+  , command :: StackCommand
   , changeSprite :: Maybe Spr.Sprite
   }
 
@@ -67,7 +67,7 @@ noAction = Actions
   , stopTheWorld = False
   , playMusic = MAContinue
   , shake = False
-  , command = State.None
+  , command = None
   , changeSprite = Nothing
   }
 

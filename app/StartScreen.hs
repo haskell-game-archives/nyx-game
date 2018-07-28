@@ -13,11 +13,7 @@ import SDL.Vect (V4(..))
 import qualified SDL
 import qualified Play.Engine.MySDL.MySDL as MySDL
 
-import Play.Engine.Utils hiding (head)
-import Play.Engine.Types
-import Play.Engine.Input as I
-import Play.Engine.Settings
---import Control.Monad
+import Play.Engine hiding (head)
 import Control.Monad.Except
 import Control.Lens
 import Data.Bifunctor
@@ -25,7 +21,6 @@ import Data.Bool
 import qualified Data.Map as M
 import qualified Play.Engine.Sprite as Spr
 import qualified Play.Engine.ListZipper as Z
-import qualified Play.Engine.State as State
 import qualified Play.Engine.Load as Load
 import qualified Control.Monad.State as SM
 
@@ -38,7 +33,7 @@ import qualified Button as Btn
 data State
   = State
   { _bg :: Spr.Sprite
-  , _buttons :: Z.ListZipper (Btn.Button, Result State.Command)
+  , _buttons :: Z.ListZipper (Btn.Button, Result StackCommand)
   , _cheat :: !Int
   }
 
@@ -50,13 +45,13 @@ wantedAssets =
   , ("vnbg", MySDL.Texture "VNBG.png")
   ] ++ Btn.wantedAssets
 
-make :: State.State
+make :: Scene
 make = Load.mkState 0 wantedAssets (mkState 5)
 
-mkState :: Int -> MySDL.Resources -> Result State.State
+mkState :: Int -> MySDL.Resources -> Result Scene
 mkState cheat_ rs = do
   state <- initState cheat_ rs
-  pure $ State.mkState
+  pure $ mkScene
     state
     update
     render
@@ -72,7 +67,7 @@ initState cheat_ rs = do
           Btn.make (Point 320 (600 + n * 60)) (Point 180 50) rs
 
         makeBtn name state n =
-          (, pure $ State.Push state)
+          (, pure $ Push state)
             <$> makeBtn' n name
 
       btns <- sequence $ zipWith (flip ($)) [0..] $
@@ -102,10 +97,10 @@ initState cheat_ rs = do
         , _cheat = cheat_
         }
 
-update :: Input -> State -> Result (State.Command, State)
+update :: Input -> State -> Result (StackCommand, State)
 update input state = do
   _wSize <- _windowSize <$> SM.get
-  btns <- Z.diffMapM (firstM $ Btn.update I.empty) (firstM $ Btn.update input)
+  btns <- Z.diffMapM (firstM $ Btn.update empty) (firstM $ Btn.update input)
     $ if
        | keyClicked KeyDown input ->
          Z.nextCycle (state ^. buttons)
@@ -117,10 +112,10 @@ update input state = do
           state ^. buttons
 
   let ((check, _), cmd') = Z.get btns
-  cmd <- bool (pure State.None) cmd' check
+  cmd <- bool (pure None) cmd' check
   pure
     ( if state ^. cheat == 0
-        then State.Replace $ Load.mkState 0 wantedAssets (mkState $ -1)
+        then Replace $ Load.mkState 0 wantedAssets (mkState $ -1)
         else cmd
     , state
       & set buttons (fmap (first snd) btns)

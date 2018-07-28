@@ -6,17 +6,16 @@ import qualified Play.Engine.MySDL.MySDL as MySDL
 import qualified SDL.Mixer as Mix
 
 import Script
-import Play.Engine.Types
+import Play.Engine
 import qualified Data.Text as T
 import qualified Data.Map as M
 import qualified TextBox as TB
 import qualified Play.Engine.Sprite as Spr
-import qualified Play.Engine.State as State
 import qualified Script.Level1 as L1
 import qualified VN
 
 
-intro :: State.State
+intro :: Scene
 intro =
   VN.make 0 $ Script
     wantedAssets
@@ -108,7 +107,7 @@ introScript MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs, MySDL.music 
 
   , Wait noAction 60
 
-  , Wait act{ command = State.Replace $ L1.level1 True } 60
+  , Wait act{ command = Replace $ L1.level1 True } 60
   ]
 
 

@@ -13,14 +13,10 @@ import qualified SDL
 import qualified SDL.Mixer as Mix
 import qualified Play.Engine.MySDL.MySDL as MySDL
 
-import Play.Engine.Utils
-import Play.Engine.Types
-import Play.Engine.Input
-import Play.Engine.Settings
+import Play.Engine
 import Control.Monad.Except
 import Control.Lens
 import System.Random
-import qualified Play.Engine.State as State
 import qualified Play.Engine.Load as Load
 import qualified Control.Monad.State as SM
 
@@ -44,15 +40,15 @@ wantedAssets =
   , ("unispace", MySDL.Font "unispace/unispace.ttf")
   ]
 
-make :: Int -> Script.ScriptData -> State.State
+make :: Int -> Script.ScriptData -> Scene
 make t sd = Load.mkState t (wantedAssets ++ Script.assets sd) (mkState $ Script.script sd)
 
 mkState
   :: (MySDL.Resources -> Script.Script)
-  -> MySDL.Resources -> Result State.State
+  -> MySDL.Resources -> Result Scene
 mkState scrpt rs = do
   state <- initState (scrpt rs)
-  pure $ State.mkState
+  pure $ mkScene
     state
     update
     render
@@ -66,7 +62,7 @@ initState scrpt = do
     , _exit = False
     }
 
-update :: Input -> State -> Result (State.Command, State)
+update :: Input -> State -> Result (StackCommand, State)
 update input state = do
   _wSize <- _windowSize <$> SM.get
 
@@ -98,9 +94,9 @@ update input state = do
 
   if
     | keyReleased KeyQuit input -> do
-      pure (State.None, set exit True state)
+      pure (None, set exit True state)
     | state ^. exit -> do
-      pure (State.Done, state)
+      pure (Done, state)
     | otherwise ->
       pure (Script.command acts, newState)
 

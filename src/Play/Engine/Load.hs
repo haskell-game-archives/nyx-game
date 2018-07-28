@@ -6,9 +6,7 @@ import SDL.Vect (V4(..))
 import qualified SDL
 import qualified Play.Engine.MySDL.MySDL as MySDL
 
-import Play.Engine.Input
-import Play.Engine.Settings
-import qualified Play.Engine.State as State
+import Play.Engine
 import Control.Monad.Except
 import Control.Lens
 
@@ -16,7 +14,7 @@ data State
   = State
   { _timer :: Int
   , _filepaths :: [(String, MySDL.ResourceType FilePath)]
-  , _nextState :: MySDL.Resources -> Result State.State
+  , _nextScene :: MySDL.Resources -> Result Scene
   }
 
 makeLenses ''State
@@ -24,30 +22,30 @@ makeLenses ''State
 mkState
   :: Int
   -> [(String, MySDL.ResourceType FilePath)]
-  -> (MySDL.Resources -> Result State.State)
-  -> State.State
+  -> (MySDL.Resources -> Result Scene)
+  -> Scene
 mkState time files next =
-  State.State $ State.StateF (initState time files next) update render
+  Scene $ SceneF (initState time files next) update render
 
 initState
   :: Int
   -> [(String, MySDL.ResourceType FilePath)]
-  -> (MySDL.Resources -> Result State.State)
+  -> (MySDL.Resources -> Result Scene)
   -> State
 initState = State
 
-update :: Input -> State -> Result ([MySDL.Request], (State.Command, State))
+update :: Input -> State -> Result ([MySDL.Request], (StackCommand, State))
 update _ s@(State t _ _)
-  | t > 0 = pure ([], (State.None, s & over timer (\x -> x - 1)))
+  | t > 0 = pure ([], (None, s & over timer (\n -> n - 1)))
 update input s@(State _ files next) =
   case (files, responses input) of
-    ([], []) -> pure ([], (State.None, s))
+    ([], []) -> pure ([], (None, s))
     ([], [MySDL.Exception e]) -> throwError [e]
     ([], [MySDL.ResourcesLoaded resources]) -> do
       next' <- next resources
-      pure ([], (State.Replace next', s))
+      pure ([], (Replace next', s))
     ([], rs) -> throwError ["Unexpected number of responses: " ++ show (length rs)]
-    (files', _) -> pure ([MySDL.Load files'], (State.None, set filepaths [] s))
+    (files', _) -> pure ([MySDL.Load files'], (None, set filepaths [] s))
 
 render :: SDL.Renderer -> State -> IO ()
 render renderer state =

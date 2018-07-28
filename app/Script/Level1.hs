@@ -7,17 +7,17 @@ import qualified SDL.Mixer as Mix
 
 import Script
 import Play.Engine.Types
+import Play.Engine
 import qualified Enemy.Static as St
 import qualified Enemy.CrossDown as CDE
 import qualified Enemy.SideToSideSpiral as SSE
-import qualified Play.Engine.State as State
 import qualified GameState as GS
 import qualified Script.Level2 as L2
 import qualified TextBox as TB
 import qualified Data.Map as M
 
 
-level1 :: Bool -> State.State
+level1 :: Bool -> Scene
 level1 playMusic =
   GS.mkGameState $ Script
     wantedAssets
@@ -98,7 +98,7 @@ lScript playMusic MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs, MySDL.
   [ WaitUntil noAction (const $ null)
   , Wait noAction 200
   , Wait act{ stopTheWorld = True } 30
-  , Wait act{ command = State.Replace $ L2.level2 False } 60
+  , Wait act{ command = Replace $ L2.level2 False } 60
   ]
 
 spawnTwoCDEs dir1 dir2 ts =

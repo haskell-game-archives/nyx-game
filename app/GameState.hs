@@ -13,17 +13,13 @@ import qualified SDL.Font as SDLF
 import qualified SDL.Mixer as Mix
 import qualified Play.Engine.MySDL.MySDL as MySDL
 
-import Play.Engine.Utils
-import Play.Engine.Types
-import Play.Engine.Input
-import Play.Engine.Settings
+import Play.Engine
 import Control.Monad
 import Control.Monad.Except
 import Control.Lens
 import Data.Maybe
 import Data.Foldable
 import System.Random
-import qualified Play.Engine.State as State
 import qualified Play.Engine.Load as Load
 
 import qualified Control.Monad.State as SM
@@ -52,7 +48,7 @@ data State
   , _resources :: MySDL.Resources
   , _script :: Script.Script
   , _camera :: Int
-  , _restart :: State.State
+  , _restart :: Scene
   , _isPause :: !Bool
   , _pauseChanged :: !Bool
   , _isMute :: !Bool
@@ -70,15 +66,15 @@ wantedAssets =
   ]
   ++ SB.wantedAssets
 
-mkGameState :: Script.ScriptData -> State.State
+mkGameState :: Script.ScriptData -> Scene
 mkGameState sd = Load.mkState 30 (wantedAssets ++ Script.assets sd) (mkState sd)
 
 mkState
   :: Script.ScriptData
-  -> MySDL.Resources -> Result State.State
+  -> MySDL.Resources -> Result Scene
 mkState sd rs = do
   state <- initState sd (Script.script sd rs) rs
-  pure $ State.mkState
+  pure $ mkScene
     state
     update
     render
@@ -119,7 +115,7 @@ initState sd scrpt rs = do
 initEnemyTimer :: Int
 initEnemyTimer = 60
 
-update :: Input -> State -> Result (State.Command, State)
+update :: Input -> State -> Result (StackCommand, State)
 update input state = do
   wSize <- _windowSize <$> SM.get
   ismute <- _muteMusic <$> SM.get
@@ -192,17 +188,17 @@ update input state = do
                 & set decObjs (updatedDecObjs `DL.append` newDecObjs)
   if
     | keyReleased KeyC input -> do
-      pure (State.Replace $ state ^. restart, state)
+      pure (Replace $ state ^. restart, state)
     | keyReleased KeyP input && state ^. isPause -> do
-      pure (State.None, set pauseChanged True $ set isPause False state)
+      pure (None, set pauseChanged True $ set isPause False state)
     | keyReleased KeyP input && not (state ^. isPause) -> do
-      pure (State.None, set pauseChanged True $ set isPause True state)
+      pure (None, set pauseChanged True $ set isPause True state)
     | state ^. isPause -> do
-      pure (State.None, state)
+      pure (None, state)
     | keyReleased KeyQuit input -> do
-      pure (State.None, set exit True state)
+      pure (None, set exit True state)
     | state ^. exit -> do
-      pure (State.Done, state)
+      pure (Done, state)
     | otherwise ->
       pure (Script.command acts, newState)
 
