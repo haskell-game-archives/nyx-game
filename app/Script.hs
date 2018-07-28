@@ -11,13 +11,10 @@ import qualified Data.Text as T
 
 import Enemy
 import qualified TextBox as TB
-import Play.Engine.Settings
-import Play.Engine.Utils
-import Play.Engine.Types
 import Control.Lens
 import Control.Monad.Except
-import qualified Play.Engine.Input as I
 import Play.Engine
+import qualified Play.Engine.Input as I
 import qualified Play.Engine.Sprite as Spr
 
 

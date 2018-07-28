@@ -16,12 +16,9 @@ import qualified Play.Engine.MySDL.MySDL as MySDL
 import Data.Monoid ((<>))
 import Data.Maybe
 import Control.Arrow
-import Play.Engine.Utils hiding (renderText)
-import Play.Engine.Types
-import Play.Engine.Settings
-import Play.Engine.Input
 import Control.Lens
 import Control.Monad.Except
+import Play.Engine hiding (renderText)
 import qualified Control.Monad.State as SM
 import qualified Data.Text as T
 import qualified Play.Engine.ListZipper as Zip

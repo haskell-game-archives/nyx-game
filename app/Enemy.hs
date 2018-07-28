@@ -10,10 +10,7 @@ module Enemy where
 import qualified SDL
 
 import Data.Maybe
-import Play.Engine.Utils
-import Play.Engine.Types
-import Play.Engine.Input
-import Play.Engine.Settings
+import Play.Engine
 import Control.Lens hiding (parts)
 import Control.DeepSeq
 import qualified Control.Monad.State as SM

@@ -27,7 +27,7 @@ import qualified Control.Monad.State as SM
 import qualified Script.Introduction as Intro
 import qualified PickStage as Pick
 import qualified KeyScreen as Keys
-import qualified Button as Btn
+import qualified Play.Engine.Button as Btn
 
 
 data State
@@ -41,9 +41,9 @@ makeFieldsNoPrefix ''State
 
 wantedAssets :: [(String, MySDL.ResourceType FilePath)]
 wantedAssets =
-  [ ("battle-bg", MySDL.Texture "background.png")
-  , ("vnbg", MySDL.Texture "VNBG.png")
-  ] ++ Btn.wantedAssets
+  [ ("vnbg", MySDL.Texture "VNBG.png")
+  , ("unispace", MySDL.Font "unispace/unispace.ttf")
+  ]
 
 make :: Scene
 make = Load.mkState 0 wantedAssets (mkState 5)
@@ -58,25 +58,24 @@ mkState cheat_ rs = do
 
 initState :: Int -> MySDL.Resources -> Result State
 initState cheat_ rs = do
-  case M.lookup "vnbg" (MySDL.textures rs) of
+  case (,)
+    <$> M.lookup "vnbg" (MySDL.textures rs)
+    <*> M.lookup "unispace" (MySDL.fonts rs) of
     Nothing ->
-      throwError ["Texture not found: vnbg"]
-    Just bgt -> do
+      throwError ["Texture not found: vnbg or unispace"]
+    Just (bgt, fnt) -> do
       let
         makeBtn' n =
-          Btn.make (Point 320 (600 + n * 60)) (Point 180 50) rs
+          Btn.make (Point 320 (600 + n * 60)) (Point 180 50) fnt
 
         makeBtn name state n =
-          (, pure $ Push state)
-            <$> makeBtn' n name
+          (makeBtn' n name, pure $ Push state)
 
-      btns <- sequence $ zipWith (flip ($)) [0..] $
-        [ makeBtn "Start" Intro.intro ]
-        ++ [ makeBtn "Pick Stage" Pick.make | cheat_ <= 0 ]
-        ++ [ makeBtn "Keys" Keys.make ]
-        ++ [ \n -> (, throwError [])
-             <$> makeBtn' n "Exit"
-           ]
+        btns = zipWith (flip ($)) [0..] $
+          [ makeBtn "Start" Intro.intro ]
+          ++ [ makeBtn "Pick Stage" Pick.make | cheat_ <= 0 ]
+          ++ [ makeBtn "Keys" Keys.make ]
+          ++ [ \n -> (makeBtn' n "Exit", throwError []) ]
 
       pure $ State
         { _bg =

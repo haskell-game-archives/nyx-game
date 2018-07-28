@@ -15,9 +15,7 @@ import Control.Monad.Except
 import Control.Lens
 import Data.Maybe (fromJust)
 
-import Play.Engine.Utils
-import Play.Engine.Types
-import Play.Engine.Settings
+import Play.Engine
 
 import Bullet
 import Enemy

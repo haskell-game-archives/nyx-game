@@ -14,9 +14,7 @@ import Options.Generic
 
 import Play.Engine.Runner
 
-import Play.Engine.Types
-import Play.Engine.Utils
-import Play.Engine.Settings
+import Play.Engine
 import qualified StartScreen as S
 
 main :: IO ()

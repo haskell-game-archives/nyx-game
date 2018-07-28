@@ -8,8 +8,7 @@ module Attack where
 
 import qualified SDL
 
-import Play.Engine.Utils
-import Play.Engine.Types
+import Play.Engine
 import Control.Lens
 import qualified Data.DList as DL
 

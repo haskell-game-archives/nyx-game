@@ -28,7 +28,7 @@ import qualified Script.Level1 as Level1
 import qualified Script.Level2 as Level2
 import qualified Script.Boss as Boss
 import qualified Script.End as End
-import qualified Button as Btn
+import qualified Play.Engine.Button as Btn
 
 
 data State
@@ -42,7 +42,8 @@ makeFieldsNoPrefix ''State
 wantedAssets :: [(String, MySDL.ResourceType FilePath)]
 wantedAssets =
   [ ("vnbg", MySDL.Texture "VNBG.png")
-  ] ++ Btn.wantedAssets
+  , ("unispace", MySDL.Font "unispace/unispace.ttf")
+  ]
 
 make :: Scene
 make = Load.mkState 0 wantedAssets mkState
@@ -57,28 +58,29 @@ mkState rs = do
 
 initState :: MySDL.Resources -> Result State
 initState rs = do
-  case M.lookup "vnbg" (MySDL.textures rs) of
+  case (,)
+    <$> M.lookup "vnbg" (MySDL.textures rs)
+    <*> M.lookup "unispace" (MySDL.fonts rs) of
     Nothing ->
-      throwError ["Texture not found: vnbg"]
-    Just bgt -> do
+      throwError ["Texture not found: vnbg or unispace"]
+    Just (bgt, fnt) -> do
       let
         makeBtn' n =
-          Btn.make (Point 320 (600 + n * 60)) (Point 180 50) rs
+          Btn.make (Point 320 (600 + n * 60)) (Point 180 50) fnt
 
         makeBtn name state n =
-          (, pure $ Replace state)
-            <$> makeBtn' n name
+          (makeBtn' n name, pure $ Replace state)
+            
 
-      btns <- sequence $ zipWith (flip ($)) [0..] $
-        [ makeBtn "Intro" Intro.intro
-        , makeBtn "Level1" $ Level1.level1 True
-        , makeBtn "Level2" $ Level2.level2 True
-        , makeBtn "Boss" $ Boss.boss True 0
-        , makeBtn "Credits" $ End.end True
+        btns = zipWith (flip ($)) [0..] $
+          [ makeBtn "Intro" Intro.intro
+          , makeBtn "Level1" $ Level1.level1 True
+          , makeBtn "Level2" $ Level2.level2 True
+          , makeBtn "Boss" $ Boss.boss True 0
+          , makeBtn "Credits" $ End.end True
 
-        , \n -> (, pure $ Done)
-          <$> makeBtn' n "Back"
-        ]
+          , \n -> (makeBtn' n "Back", pure $ Done)
+          ]
 
       pure $ State
         { _bg =

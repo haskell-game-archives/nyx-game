@@ -13,7 +13,7 @@ import Control.Lens
 import qualified Data.DList as DL
 
 import Bullet
-import Play.Engine.Utils
+import Play.Engine
 import qualified Attack as A
 import qualified Play.Engine.Movement as MV
 

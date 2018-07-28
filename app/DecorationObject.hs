@@ -9,9 +9,7 @@ module DecorationObject where
 
 import qualified SDL
 
-import Play.Engine.Utils
-import Play.Engine.Input
-import Play.Engine.Settings
+import Play.Engine
 import Control.Lens
 import Control.DeepSeq
 

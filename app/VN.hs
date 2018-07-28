@@ -14,10 +14,6 @@ import qualified SDL.Mixer as Mix
 import qualified SDL.Font as SDLF
 import qualified Play.Engine.MySDL.MySDL as MySDL
 
-import Play.Engine.Utils
-import Play.Engine.Types
-import Play.Engine.Input
-import Play.Engine.Settings
 import Data.Maybe
 import Control.Monad.Except
 import Control.Lens

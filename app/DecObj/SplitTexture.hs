@@ -11,9 +11,7 @@ module DecObj.SplitTexture where
 
 import qualified SDL
 
-import Play.Engine.Utils
-import Play.Engine.Types
-import Play.Engine.Settings
+import Play.Engine
 import Control.Lens
 
 import qualified DecObj.Particle as Part

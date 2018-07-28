@@ -12,8 +12,7 @@ import qualified SDL
 import Data.Tuple
 import Data.Word
 import Data.Maybe
-import Play.Engine.Utils
-import Play.Engine.Types
+import Play.Engine
 import Control.Lens
 import Control.DeepSeq
 import qualified Data.Map as M

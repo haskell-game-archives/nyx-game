@@ -23,7 +23,7 @@ import qualified Play.Engine.ListZipper as Z
 import qualified Play.Engine.Load as Load
 import qualified Control.Monad.State as SM
 
-import qualified Button as Btn
+import qualified Play.Engine.Button as Btn
 
 
 data State
@@ -37,7 +37,8 @@ makeFieldsNoPrefix ''State
 wantedAssets :: [(String, MySDL.ResourceType FilePath)]
 wantedAssets =
   [ ("keys", MySDL.Texture "keys.png")
-  ] ++ Btn.wantedAssets
+  , ("unispace", MySDL.Font "unispace/unispace.ttf")
+  ]
 
 make :: Scene
 make = Load.mkState 0 wantedAssets mkState
@@ -52,18 +53,19 @@ mkState rs = do
 
 initState :: MySDL.Resources -> Result State
 initState rs = do
-  case M.lookup "keys" (MySDL.textures rs) of
+  case (,)
+    <$> M.lookup "keys" (MySDL.textures rs)
+    <*> M.lookup "unispace" (MySDL.fonts rs) of
     Nothing ->
-      throwError ["Texture not found: keys"]
-    Just bgt -> do
+      throwError ["Texture not found: keys or unispace"]
+    Just (bgt, fnt) -> do
       let
         makeBtn' n =
-          Btn.make (Point 320 (720 + n * 60)) (Point 180 50) rs
+          Btn.make (Point 320 (720 + n * 60)) (Point 180 50) fnt
 
-      btns <- sequence $ zipWith (flip ($)) [0..] $
-        [ \n -> (, pure $ Done)
-          <$> makeBtn' n "Back"
-        ]
+        btns = zipWith (flip ($)) [0..] $
+          [ \n -> (makeBtn' n "Back", pure Done)
+          ]
 
       pure $ State
         { _bg =

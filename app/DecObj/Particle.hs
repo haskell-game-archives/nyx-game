@@ -12,10 +12,7 @@ module DecObj.Particle where
 import qualified SDL
 import SDL.Vect (Point(P))
 
-import Play.Engine.Utils
-import Play.Engine.Types
-import Play.Engine.Input
-import Play.Engine.Settings
+import Play.Engine
 import Control.Lens
 import GHC.Generics
 import Control.DeepSeq

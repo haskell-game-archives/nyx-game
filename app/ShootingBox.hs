@@ -10,10 +10,8 @@ module ShootingBox where
 import qualified SDL
 import qualified Play.Engine.MySDL.MySDL as MySDL
 
-import Play.Engine.Utils
-import Play.Engine.Types
-import Play.Engine.Input
-import Play.Engine.Settings
+import Play.Engine
+
 import Data.Maybe
 import Control.Monad.Except
 import Control.Lens

@@ -6,21 +6,15 @@
 {-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE OverloadedStrings  #-}
 
-module Button where
+module Play.Engine.Button where
 
 import qualified SDL
 import qualified SDL.Font as SDLF
-import qualified Play.Engine.MySDL.MySDL as MySDL
 
-import Play.Engine.Utils
-import Play.Engine.Types
-import Play.Engine.Settings
-import Play.Engine.Input
+import Play.Engine
 import Control.Lens
-import Control.Monad.Except
 import SDL.Vect (V4(..))
 import qualified Data.Text as T
-import qualified Data.Map as M
 
 
 data Button
@@ -34,16 +28,9 @@ data Button
 
 makeFieldsNoPrefix ''Button
 
-wantedAssets :: [(String, MySDL.ResourceType FilePath)]
-wantedAssets =
-  [ ("unispace", MySDL.Font "unispace/unispace.ttf")
-  ]
-
-make :: IPoint -> Size -> MySDL.Resources -> T.Text -> Result Button
-make posi sz res txt = do
-  fnt <- maybe (throwError ["Texture not found: unispace"]) pure
-    $ M.lookup "unispace" (MySDL.fonts res)
-  pure $ Button
+make :: IPoint -> Size -> SDLF.Font -> T.Text -> Button
+make posi sz fnt txt = do
+  Button
     { _font = fnt
     , _text = txt
     , _pos = posi
