@@ -4,12 +4,13 @@
 
 module Play.Engine.MySDL.MySDL where
 
-import Data.Word (Word8)
+import Data.Word (Word8, Word32)
 import Data.Text (Text)
 import Control.Exception (catch, SomeException(..))
 import Control.Monad.Identity
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import System.IO
+import Control.Concurrent (threadDelay)
 import Control.Concurrent.STM.TQueue
 import Control.Concurrent.STM
 import Control.Concurrent.Async
@@ -60,7 +61,7 @@ withRenderer :: MonadIO m => SDL.Window -> ((SDL.Window, SDL.Renderer) -> m a) -
 withRenderer window go = do
   renderer <- SDL.createRenderer window (-1)
     $ SDL.RendererConfig
-      { rendererType          = SDL.AcceleratedVSyncRenderer
+      { rendererType          = SDL.AcceleratedRenderer
       , rendererTargetTexture = False
       }
   go (window, renderer)
@@ -77,6 +78,9 @@ apploop
   -> (a -> IO ())
   -> IO a
 apploop resources responsesQueue renderer world update render = do
+  -- measure ticks at the start
+  start <- SDL.ticks
+
   events <- collectEvents
   --unless (null events) $ print events
   keyState <- SDL.getKeyboardState
@@ -99,8 +103,26 @@ apploop resources responsesQueue renderer world update render = do
               | otherwise = loop =<< collectEvents
           loop events
 
+        -- measure ticks at the end and regulate FPS
+        end <- SDL.ticks
+        regulateFPS 60 start end
         apploop resources responsesQueue renderer newWorld update render
 
+-- | Will wait until ticks pass
+regulateFPS :: Word32 -> Word32 -> Word32 -> IO ()
+regulateFPS fps start end
+  | fps == 0 = pure ()
+  | otherwise = do
+    let
+      ticksPerFrame = 1000 `div` fps
+      interval = end - start
+      gap = ticksPerFrame - interval
+      delayFor
+        | gap < ticksPerFrame =
+          fromIntegral $ max 0 gap
+        | otherwise =
+          fromIntegral ticksPerFrame
+    threadDelay $ delayFor * 1000 -- threadDelay works in microseconds
 
 
 getJoystick :: IO (Maybe SDL.Joystick)
