@@ -1,9 +1,7 @@
-resolver: lts-10.4
+resolver: lts-13.24
 packages:
 - '.'
-extra-deps:
-- sdl2-2.4.1.0
-- sdl2-mixer-1.1.0
+extra-deps: []
 
 flags: {}
 extra-package-dbs: []
