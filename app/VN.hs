@@ -162,4 +162,4 @@ render renderer state = do
         Mix.resumeMusic
 
   when (state ^. exit) $
-    Mix.pauseMusic
+    Mix.haltMusic

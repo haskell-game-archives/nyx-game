@@ -113,4 +113,4 @@ render renderer state = do
   Script.render renderer cam (state ^. script)
 
   when (state ^. exit) $
-    Mix.pauseMusic
+    Mix.haltMusic
