@@ -1,12 +1,19 @@
-name:                play
-version:             0.1.0.0
+name:                nyx-game
+version:             1.0.0.0
 license:             Apache-2.0
 author:              "Gil Mizrahi"
 maintainer:          "gilmi@posteo.net"
-copyright:           "2018 Gil Mizrahi"
+copyright:           "2019 Gil Mizrahi"
+category:            Game
+synopsis:            A bullet-hell game made with SDL2.
+description:         A purely functional bullet-hell game made with SDL2. Visit https://gilmi.me/nyx for more details.
+git:                 https://gitlab.com/gilmi/nyx-game
 
 extra-source-files:
 - README.md
+
+data-files:
+- assets/**/*
 
 dependencies:
 - base >= 4.7 && < 5
@@ -57,12 +64,11 @@ executables:
     source-dirs:         app
     dependencies:
     - base
-    - play
+    - nyx-game
 
     ghc-options:
     - -Wall
     - -fno-warn-missing-signatures
-    - -Werror
     - -O2
     - -rtsopts
     - -funfolding-use-threshold=16

@@ -6,7 +6,7 @@ setup:
 .PHONY: build
 
 build:
-	stack build
+	stack build --ghc-options='-Werror'
 
 .PHONY: dev
 
