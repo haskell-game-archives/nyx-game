@@ -15,6 +15,8 @@ import qualified GameState as GS
 import qualified Script.Level2 as L2
 import qualified TextBox as TB
 import qualified Data.Map as M
+import Data.Maybe (isNothing)
+import Data.List (intersperse)
 
 
 level1 :: Bool -> Scene
@@ -50,8 +52,15 @@ lScript playMusic MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs, MySDL.
 
   , Wait noAction 60
   ] ++
+    intersperse
+      ( If (const . isNothing)
+        [ Wait noAction 90
+        , FadeOut act{ command = Replace $ level1 False } 0
+        ]
+      )
+
   -- First sequence
-  concat
+  ( concat
     ( replicate 3 $ concat
       [ spawnStaticAndWait 200 300 ts
       , spawnStaticAndWait 600 200 ts
@@ -94,12 +103,13 @@ lScript playMusic MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs, MySDL.
     , [spawnTwoCDEs (Right ()) (Left ()) ts]
     ] ++
 
-  -- First wave done
-  [ WaitUntil noAction (const $ null)
-  , Wait noAction 200
-  , Wait act{ stopTheWorld = True } 30
-  , Wait act{ command = Replace $ L2.level2 False } 60
-  ]
+    -- First wave done
+    [ WaitUntil noAction (\nyx bullets -> isNothing nyx || null bullets)
+    , Wait noAction 200
+    , Wait act{ stopTheWorld = True } 30
+    , Wait act{ command = Replace $ L2.level2 False } 60
+    ]
+  )
 
 spawnTwoCDEs dir1 dir2 ts =
   Spawn $ sequence
@@ -111,5 +121,5 @@ spawnStaticAndWait posx target ts =
   [ Spawn $ sequence
     [ St.make (Point posx (-100)) (Point 0 1) target ts
     ]
-  , Wait noAction 120
+  , Wait noAction 100
   ]

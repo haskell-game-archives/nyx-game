@@ -94,7 +94,7 @@ plus1' n
 
 update :: Input -> TextBox -> Result (Maybe TextBox)
 update input tb
-  | keyClicked KeyA input
+  | keyClicked KeyA input || keyClicked KeyStart input
   , let (l, t) = Zip.last (tb ^. text) in l == T.length t
   = pure Nothing
   | otherwise = do
@@ -117,6 +117,7 @@ update input tb
         (\(txt :: Zip.ListZipper (Int, T.Text)) ->
            if
              | keyClicked KeyA input
+             || keyClicked KeyStart input
              || tb ^. textSpeed == 0 ->
                fmap (\(_, t) -> (T.length t, t)) txt
              | tb ^. textTimer == 0

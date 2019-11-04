@@ -21,6 +21,7 @@ import qualified Play.Engine.Sprite as Spr
 data Command
   = Wait !Actions Int
   | WaitUntil !Actions (Maybe IPoint -> [Enemy] -> Bool)
+  | If (Maybe IPoint -> [Enemy] -> Bool) Script
   | Spawn (Result [Enemy])
   | LoadTextBox !Actions (Result TB.TextBox)
   | WaitTextBox !Actions TB.TextBox
@@ -81,6 +82,10 @@ update input mcPos enemies = \case
   WaitUntil acts test : rest
     | test mcPos enemies -> pure (acts, rest)
     | otherwise -> pure (acts, WaitUntil acts test : rest)
+
+  If test cmds : rest
+    | test mcPos enemies -> pure (noAction, cmds <> rest)
+    | otherwise -> pure (noAction, rest)
 
   Spawn spawned : rest ->
     (, rest) . (\s -> noAction { spawn = s }) <$> spawned

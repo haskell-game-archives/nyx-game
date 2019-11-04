@@ -13,6 +13,8 @@ import qualified GameState as GS
 import qualified Script.Boss as Boss
 import qualified TextBox as TB
 import qualified Data.Map as M
+import Data.Maybe (isNothing)
+import Data.List (intersperse)
 
 
 level2 :: Bool -> Scene
@@ -44,28 +46,34 @@ lScript playMusic MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs, MySDL.
   [ LoadTextBox act{ stopTheWorld = True } $
     TB.make TB.Bottom 4 "This is harder than I expected..." (M.lookup "nyx-avatar" ts) (M.lookup "unispace" fs)
   ] ++
+    intersperse
+      ( If (const . isNothing)
+        [ Wait noAction 60
+        , FadeOut act{ command = Replace $ level2 False } 0
+        ]
+      )
 
   -- Second wave
-  concat
+  ( concat
     [ [ Spawn $ sequence [CDE.make (Point 100 (-180)) (Right ()) ts]
-      , Wait noAction 100
+      , Wait noAction 50
       ]
-    , spawnStaticAndWait 400 300 ts
+    , spawnStaticAndWait 450 300 ts
     , [ Spawn $ sequence [CDE.make (Point 700 (-180)) (Left ()) ts]
-      , Wait noAction 100
+      , Wait noAction 80
       ]
-    , [ Spawn $ sequence [CDE.make (Point 650 (-150)) (Left ()) ts]
-      , Wait noAction 100
+    , [ Spawn $ sequence [CDE.make (Point 600 (-150)) (Left ()) ts]
+      , Wait noAction 60
       ]
     , [ Spawn $ sequence [CDE.make (Point 100 (-180)) (Right ()) ts]
-      , Wait noAction 100
+      , Wait noAction 40
       ]
     , spawnStaticAndWait 600 300 ts
     , spawnStaticAndWait 250 250 ts
     , [ spawnTwoCDEs (Left ()) (Right ()) ts
-      , Wait noAction 100
+      , Wait noAction 70
       , spawnTwoCDEs (Right ()) (Left ()) ts
-      , Wait noAction 100
+      , Wait noAction 70
       ]
     , [ spawnTwoCDEs (Left ()) (Right ()) ts
       , Wait noAction 60
@@ -79,13 +87,14 @@ lScript playMusic MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs, MySDL.
       ]
     ] ++
 
-  -- Second wave done
-  [ WaitUntil noAction (const $ null)
-  , Wait noAction 200
-  , StopMusic
-  , Wait act{ stopTheWorld = True } 30
-  , Wait act{ command = Replace $ Boss.boss True 0 } 60
-  ]
+    -- Second wave done
+    [ WaitUntil noAction (\nyx bullets -> isNothing nyx || null bullets)
+    , Wait noAction 200
+    , StopMusic
+    , Wait act{ stopTheWorld = True } 30
+    , Wait act{ command = Replace $ Boss.boss True 0 } 60
+    ]
+  )
 
 spawnTwoCDEs dir1 dir2 ts =
   Spawn $ sequence
@@ -97,5 +106,5 @@ spawnStaticAndWait posx target ts =
   [ Spawn $ sequence
     [ St.make (Point posx (-100)) (Point 0 1) target ts
     ]
-  , Wait noAction 120
+  , Wait noAction 110
   ]

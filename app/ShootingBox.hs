@@ -94,7 +94,7 @@ mkMainChar ts = do
               , mkTexture = nyxSprites
               , mkSize = Point 180 380
               , mkMaxPos = 4
-              , mkSpeed = 5
+              , mkSpeed = 6
               }
           , _bullet = nyxBullet
           , _hitTimer = -1
@@ -183,17 +183,17 @@ update input mc = do
 newBullet :: MainChar -> [Bullet]
 newBullet mc
   | mc ^. size . x == charSize ^. x =
-    [ mkBullet (mc ^. bullet) (Point 0 (-1)) mv 2 70 ((mc ^. pos) `addPoint` Point (mc ^. size . x `div` 4) 0)
-    , mkBullet (mc ^. bullet) (Point 0 (-1)) mv 2 70 ((mc ^. pos) `addPoint` Point ((mc ^. size . x `div` 4) * 3) 0)
+    [ mkBullet (mc ^. bullet) (Point 0 (-1)) mv 2 160 ((mc ^. pos) `addPoint` Point (mc ^. size . x `div` 4) 0)
+    , mkBullet (mc ^. bullet) (Point 0 (-1)) mv 2 160 ((mc ^. pos) `addPoint` Point ((mc ^. size . x `div` 4) * 3) 0)
     ]
   | otherwise =
-    [ mkBullet (mc ^. bullet) (Point 0 (-1)) mv 5 140 ((mc ^. pos) `addPoint` Point (charSize ^. x `div` 2) 0)
+    [ mkBullet (mc ^. bullet) (Point 0 (-1)) mv 5 230 ((mc ^. pos) `addPoint` Point (charSize ^. x `div` 2) 0)
     ]
 
   where
     mv = MV.make $ MV.defArgs
-      { MV.maxspeed = Point 0 10
-      , MV.accel = Point 0 10
+      { MV.maxspeed = Point 0 13
+      , MV.accel = Point 0 5
       }
 
 checkHit :: [Bullet] -> MainChar -> MainChar

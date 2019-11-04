@@ -2,6 +2,8 @@
 
 A bullet hell game written in Haskell.
 
+Click 'R' 5 times to expose a secret menu.
+
 ## How to Run
 
 ### From Source

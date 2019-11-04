@@ -12,6 +12,7 @@ import qualified GameState as GS
 import qualified TextBox as TB
 import qualified Data.Map as M
 import qualified Script.End as End
+import Data.Maybe (isNothing)
 
 
 boss :: Bool -> Int -> Scene
@@ -78,7 +79,7 @@ lScript playMusic tryNum MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs,
       | tryNum < 7 ->
         [ LoadTextBox act{ stopTheWorld = True } $
           TB.make TB.Top 4
-          "Didn't you have enough yet?"
+          "Haven't you have enough yet?"
           (M.lookup "astral-avatar" ts) (M.lookup "unispace" fs)
         ]
       | tryNum < 10 ->
@@ -111,8 +112,13 @@ lScript playMusic tryNum MySDL.Resources{ MySDL.textures = ts, MySDL.fonts = fs,
   ] ++
   -- Boss
   [ Spawn $ sequence [Fast.make (Point 350 (-100)) ts]
-  , WaitUntil noAction (const $ null)
+  , WaitUntil noAction (\nyx bullets -> isNothing nyx || null bullets)
 
+  , If (const . isNothing)
+    [ Wait noAction 90
+    , FadeOut act{ command = Replace $ boss False (tryNum + 1) } 0
+    , Wait noAction 30
+    ]
   , StopMusic
   , Wait act{ stopTheWorld = False } 2
   , Wait act{ stopTheWorld = True } 150
