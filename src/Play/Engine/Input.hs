@@ -40,6 +40,7 @@ data Key
   | KeyD
   | KeyM
   | KeyP
+  | KeyScale
   | KeyStart
   | KeyQuit
   deriving (Show, Read, Eq, Ord, Bounded, Enum, Generic, NFData)
@@ -69,6 +70,7 @@ defKeyMap = map swap
   , (SDL.ScancodeV, KeyD)
   , (SDL.ScancodeM, KeyM)
   , (SDL.ScancodeP, KeyP)
+  , (SDL.ScancodeF12, KeyScale)
   ]
 
 -- can't have more than one binding to the same key as this will create a state accumulation problem

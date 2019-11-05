@@ -27,6 +27,10 @@ import qualified SDL.Font as SDLF
 import qualified SDL.Mixer as Mix
 import SDL.Vect (V2(..), V4(..))
 
+import Play.Engine.Types (Size)
+import Play.Engine.Utils (scalePoint)
+
+
 --import Debug.Trace
 
 -- | Config window
@@ -41,6 +45,7 @@ withWindow title winConf go = do
   SDLF.initialize
 
   window <- SDL.createWindow title winConf
+
   SDL.showWindow window
 
   mJoystick <- getJoystick
@@ -72,12 +77,13 @@ withRenderer window go = do
 apploop
   :: ResourcesT TVar
   -> TQueue Response
+  -> SDL.Window
   -> SDL.Renderer
   -> a
   -> ([Response] -> [SDL.EventPayload] -> (SDL.Scancode -> Bool) -> a -> IO (Either [String] ([Request], a)))
   -> (a -> IO ())
   -> IO a
-apploop resources responsesQueue renderer world update render = do
+apploop resources responsesQueue window renderer world update render = do
   -- measure ticks at the start
   start <- SDL.ticks
 
@@ -90,7 +96,7 @@ apploop resources responsesQueue renderer world update render = do
       liftIO $ mapM (hPutStrLn stderr . ("*** Error: " ++)) errs >> pure world
     Right (reqs, newWorld) -> do
       render newWorld
-      void $ async $ mapConcurrently_ (runRequest resources responsesQueue renderer) reqs
+      void $ async $ mapConcurrently_ (runRequest resources responsesQueue window renderer) reqs
       if checkEvent SDL.QuitEvent events
       then pure world
       else do
@@ -106,7 +112,7 @@ apploop resources responsesQueue renderer world update render = do
         -- measure ticks at the end and regulate FPS
         end <- SDL.ticks
         regulateFPS 60 start end
-        apploop resources responsesQueue renderer newWorld update render
+        apploop resources responsesQueue window renderer newWorld update render
 
 -- | Will wait until ticks pass
 regulateFPS :: Word32 -> Word32 -> Word32 -> IO ()
@@ -182,6 +188,8 @@ data Request
   | PlayMusic (String, FilePath)
   | MuteMusic
   | UnmuteMusic
+  | SetNormalWindowScale Size
+  | SetSmallWindowScale Size
 
 data Response
   = ResourcesLoaded Resources
@@ -208,8 +216,8 @@ initResources =
     <*> newTVarIO M.empty
     <*> newTVarIO M.empty
 
-runRequest :: ResourcesT TVar -> TQueue Response -> SDL.Renderer -> Request -> IO ()
-runRequest resources queue renderer req =
+runRequest :: ResourcesT TVar -> TQueue Response -> SDL.Window -> SDL.Renderer -> Request -> IO ()
+runRequest resources queue window renderer req =
   flip catch (\(SomeException e) -> atomically $ writeTQueue queue $ Exception $ show e) $
     case req of
       Load files -> do
@@ -231,6 +239,14 @@ runRequest resources queue renderer req =
         Mix.setMusicVolume 0
       UnmuteMusic -> do
         Mix.setMusicVolume 100
+      SetSmallWindowScale size -> do
+        SDL.windowSize window SDL.$= (scalePoint 0.7 size)
+        SDL.rendererScale renderer SDL.$= 0.7
+        SDL.setWindowPosition window SDL.Centered
+      SetNormalWindowScale size -> do
+        SDL.windowSize window SDL.$= fmap fromIntegral size
+        SDL.rendererScale renderer SDL.$= 1
+        SDL.setWindowPosition window SDL.Centered
 
 
 loadResource renderer resources (n, r) =

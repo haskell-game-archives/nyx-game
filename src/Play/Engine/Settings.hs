@@ -18,8 +18,14 @@ data Settings
   , _keyStats :: !Keys
   , _joyKeyStats :: !Keys
   , _muteMusic :: !Bool
+  , _windowScale :: WindowScale
   }
   deriving (Show)
+
+data WindowScale
+  = SmallWindow
+  | NormalWindow
+  deriving Show
 
 makeLenses ''Settings
 
@@ -34,4 +40,5 @@ def = Settings
   , _keyStats = initKeyStats
   , _joyKeyStats = initKeyStats
   , _muteMusic = False
+  , _windowScale = NormalWindow
   }

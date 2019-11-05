@@ -66,6 +66,9 @@ supplyBoth = (=<<)
 (.:) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
 (.:) f g a b = f (g a b)
 
+scalePoint :: Float -> Size -> V2 C.CInt
+scalePoint ratio = fmap (floor . (*) ratio . fromIntegral)
+
 absPoint :: IPoint -> IPoint
 absPoint = fmap abs
 

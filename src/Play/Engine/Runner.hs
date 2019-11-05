@@ -40,6 +40,7 @@ run settings stack = do
           MySDL.apploop
             resources
             responsesQueue
+            window
             ren
             (settings, stack)
             update
@@ -54,7 +55,7 @@ update
   -> (SDL.Scancode -> Bool)
   -> (Settings, Stack Scene)
   -> IO (Either [String] ([MySDL.Request], (Settings, Stack Scene)))
-update responses payload isKeyPressed (settings, stack) =
+update responses payload isKeyPressed (settings, stack) = do
   let
     (keys, joykeys) = makeEvents (_keyStats settings) (_joyKeyStats settings) payload isKeyPressed (_keyMap settings)
 
@@ -62,8 +63,15 @@ update responses payload isKeyPressed (settings, stack) =
       | keyClicked' KeyM keys = not
       | otherwise = id
 
+    toggleWindowScale
+      | keyClicked' KeyScale keys = \case
+        NormalWindow -> SmallWindow
+        SmallWindow -> NormalWindow
+      | otherwise = id
+
     settings' = settings
       & over muteMusic toggleMuteFlag
+      & over windowScale toggleWindowScale
       & set keyStats keys
       & set joyKeyStats joykeys
 
@@ -72,8 +80,14 @@ update responses payload isKeyPressed (settings, stack) =
       | not (settings' ^. muteMusic) = (:) MySDL.UnmuteMusic
       | otherwise = id
 
-  in pure
-    . fmap (\(setts, (reqs, states)) -> (toggleMuteCmd reqs, (setts, states)))
+    toggleWindowScaleCmd
+      | keyClicked' KeyScale keys = case settings' ^. windowScale of
+        NormalWindow -> (:) $ MySDL.SetNormalWindowScale $ settings' ^. windowSize
+        SmallWindow -> (:) $ MySDL.SetSmallWindowScale $ settings' ^. windowSize
+      | otherwise = id
+
+  pure
+    . fmap (\(setts, (reqs, states)) -> (toggleWindowScaleCmd $ toggleMuteCmd reqs, (setts, states)))
     . (joykeys `deepseq` keys `deepseq` runResult $! settings')
     $ updateScenes (Input (M.unionWith max keys joykeys) responses) stack
 
